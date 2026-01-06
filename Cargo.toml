@@ -1,0 +1,10 @@
+[package]
+name = "deepthought"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+easy-error = "1.0.0"
+lazy_static = "1.5.0"
+llama-cpp-2 = "0.1.131"
+log = "0.4.29"
