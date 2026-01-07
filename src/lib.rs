@@ -11,6 +11,7 @@ use llama_cpp_2::{
     context::params::LlamaContextParams,
     llama_backend::LlamaBackend,
     llama_batch::{BatchAddError, LlamaBatch},
+    llama_supports_mlock,
     model::{
         AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special, params::LlamaModelParams,
     },
@@ -95,6 +96,10 @@ impl DeepThoughtBackend {
                 system_prompt.to_string(),
             )?],
         })
+    }
+
+    pub fn supports_mlock() -> bool {
+        llama_supports_mlock()
     }
 }
 
