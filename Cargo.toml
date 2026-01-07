@@ -5,7 +5,7 @@ edition = "2024"
 description = "Functional wrapper around Llama.cpp with Rust Dynamic datatypes support"
 license-file = "LICENSE"
 repository = "https://github.com/vulogov/deepthought"
-categories = ["Development tools"]
+categories = ["дevelopment-tools"]
 keywords = ["ai", "llama", "llama-cpp"]
 
 [dependencies]
