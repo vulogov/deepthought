@@ -237,7 +237,7 @@ impl DeepThoughtModel {
 
     pub fn ask(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
         let mut output = vec![];
-        match self.send_without_history_history(prompt, &mut output) {
+        match self.send_without_history(prompt, &mut output) {
             Ok(_) => {
                 return Ok(String::from_utf8_lossy(&output).to_string());
             }

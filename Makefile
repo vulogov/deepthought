@@ -13,7 +13,7 @@ commit:
 	git push
 
 test:
-	cargo test -- --show-output
+	LLAMATEST_GGUF=qwen2.5-0.5b-instruct-q3_k_m.gguf cargo test -- --show-output
 
 clean:
 	cargo clean

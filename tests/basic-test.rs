@@ -13,22 +13,25 @@ mod tests {
     #[test]
     fn test_new_load_model() {
         let dtb = DeepThoughtBackend::new().unwrap();
-        let _ = dtb.load_model("Llama-3.2-3B-Instruct-Q6_K.gguf", "You are robot!").unwrap();
+        let _ = dtb
+            .load_model(&std::env::var("LLAMATEST_GGUF").unwrap(), "You are robot!")
+            .unwrap();
     }
 
     #[test]
     fn test_new_who_are_you() {
         let dtb = DeepThoughtBackend::new().unwrap();
-        let mut dtm = dtb.load_model("Llama-3.2-3B-Instruct-Q6_K.gguf", "You are robot!").unwrap();
+        let mut dtm = dtb
+            .load_model(&std::env::var("LLAMATEST_GGUF").unwrap(), "You are robot!")
+            .unwrap();
         let res = dtm.chat("Who are you?").unwrap();
         assert!(res.to_lowercase().contains("model"));
     }
 
     #[test]
     fn test_new_who_are_you_deepthough() {
-        let mut dt = DeepThought::new("Llama-3.2-3B-Instruct-Q6_K.gguf").unwrap();
+        let mut dt = DeepThought::new(&std::env::var("LLAMATEST_GGUF").unwrap()).unwrap();
         let res = dt.chat("Who are you?").unwrap();
         assert!(res.to_lowercase().contains("model"));
     }
-
 }
