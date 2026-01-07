@@ -2,15 +2,12 @@ extern crate log;
 
 use std::num::NonZeroU32;
 
-use std::{
-    io::{Write},
-    sync::Arc,
-};
+use std::{io::Write, sync::Arc};
 
 use llama_cpp_2::{
-    ApplyChatTemplateError, ChatTemplateError, DecodeError, EmbeddingsError, LlamaCppError,
-    LlamaContextLoadError, LlamaModelLoadError, NewLlamaChatMessageError,
-    StringToTokenError, TokenToStringError,
+    ApplyChatTemplateError, ChatTemplateError, DecodeError, EmbeddingsError, LlamaContextLoadError,
+    LlamaCppError, LlamaModelLoadError, LogOptions, NewLlamaChatMessageError, StringToTokenError,
+    TokenToStringError,
     context::params::LlamaContextParams,
     llama_backend::LlamaBackend,
     llama_batch::{BatchAddError, LlamaBatch},
@@ -19,11 +16,10 @@ use llama_cpp_2::{
     },
     sampling::LlamaSampler,
     send_logs_to_tracing,
-    LogOptions,
 };
 
-use rust_dynamic::value::Value;
 use rust_dynamic::types::*;
+use rust_dynamic::value::Value;
 
 //
 // Model context length (in tokens) used during inference.
@@ -44,17 +40,17 @@ pub struct DeepThoughtBackend {
 }
 
 pub struct DeepThoughtModel {
-    pub context_length:     usize,
-    pub batch_size:         usize,
-    registry:               DeepThoughtBackend,
-    model:                  LlamaModel,
-    chat_template:          LlamaChatTemplate,
-    messages:               Vec<LlamaChatMessage>,
+    pub context_length: usize,
+    pub batch_size: usize,
+    registry: DeepThoughtBackend,
+    model: LlamaModel,
+    chat_template: LlamaChatTemplate,
+    messages: Vec<LlamaChatMessage>,
 }
 
 pub struct DeepThought {
-    pub backend:        DeepThoughtBackend,
-    pub model:          DeepThoughtModel,
+    pub backend: DeepThoughtBackend,
+    pub model: DeepThoughtModel,
 }
 
 impl DeepThoughtBackend {
@@ -80,42 +76,49 @@ impl DeepThoughtBackend {
     }
 
     pub fn load_model(
-       &self,
-       model_path: &str,
-       system_prompt: &str,
-   ) -> Result<DeepThoughtModel, Error> {
-       let model_params = LlamaModelParams::default();
-       let model = LlamaModel::load_from_file(&self.backend, model_path, &model_params)?;
-       let chat_template = model.chat_template(None)?;
+        &self,
+        model_path: &str,
+        system_prompt: &str,
+    ) -> Result<DeepThoughtModel, Error> {
+        let model_params = LlamaModelParams::default();
+        let model = LlamaModel::load_from_file(&self.backend, model_path, &model_params)?;
+        let chat_template = model.chat_template(None)?;
 
-       Ok(DeepThoughtModel {
-           registry:        self.clone(),
-           batch_size:      DEFAULT_BATCH_SIZE,
-           context_length:  DEFAULT_CONTEXT_LENGTH,
-           model,
-           chat_template,
-           messages: vec![LlamaChatMessage::new(
-               "system".to_string(),
-               system_prompt.to_string(),
-           )?],
-       })
-   }
+        Ok(DeepThoughtModel {
+            registry: self.clone(),
+            batch_size: DEFAULT_BATCH_SIZE,
+            context_length: DEFAULT_CONTEXT_LENGTH,
+            model,
+            chat_template,
+            messages: vec![LlamaChatMessage::new(
+                "system".to_string(),
+                system_prompt.to_string(),
+            )?],
+        })
+    }
 }
 
-
 impl DeepThoughtModel {
+    pub fn reset_messages(&mut self, system_prompt: &str) -> Result<(), Error> {
+        self.messages.clear();
+        self.messages.push(LlamaChatMessage::new(
+            "system".to_string(),
+            system_prompt.to_string(),
+        )?);
+        Ok(())
+    }
+
     pub fn send_with_history(
         &mut self,
         prompt: &str,
         output: &mut impl Write,
     ) -> Result<(), Error> {
         let mut inference = vec![];
-        self.infer(prompt, &mut inference)?;
+        self.infer(prompt, &mut inference, true)?;
         let inference = match String::from_utf8(inference) {
             Ok(inference) => inference,
             Err(err) => return Err(format!("{}", err).into()),
         };
-
 
         self.messages.push(LlamaChatMessage::new(
             "user".to_string(),
@@ -132,12 +135,30 @@ impl DeepThoughtModel {
         Ok(())
     }
 
-    pub fn infer(&mut self, prompt: &str, output: &mut impl Write) -> Result<(), Error> {
+    pub fn send_without_history(
+        &mut self,
+        prompt: &str,
+        output: &mut impl Write,
+    ) -> Result<(), Error> {
+        let mut inference = vec![];
+        self.infer(prompt, &mut inference, false)?;
+        let inference = match String::from_utf8(inference) {
+            Ok(inference) => inference,
+            Err(err) => return Err(format!("{}", err).into()),
+        };
 
-        self.messages.push(LlamaChatMessage::new(
-            "user".to_string(),
-            prompt.to_string(),
-        )?);
+        output.write_all(inference.as_bytes())?;
+
+        Ok(())
+    }
+
+    fn infer(&mut self, prompt: &str, output: &mut impl Write, history: bool) -> Result<(), Error> {
+        if history {
+            self.messages.push(LlamaChatMessage::new(
+                "user".to_string(),
+                prompt.to_string(),
+            )?);
+        }
 
         let prompt = self
             .model
@@ -194,12 +215,8 @@ impl DeepThoughtModel {
             n_cur += 1;
 
             match context.decode(&mut batch) {
-                Ok(_) => {},
-                Err(_) => return Err(
-                    Error::InternalNativeError(
-                        "Decoding error".to_string()
-                    )
-                ),
+                Ok(_) => {}
+                Err(_) => return Err(Error::InternalNativeError("Decoding error".to_string())),
             };
         }
 
@@ -208,12 +225,19 @@ impl DeepThoughtModel {
         Ok(())
     }
 
-    pub fn chat(
-        &mut self,
-        prompt: &str
-    ) -> Result<String, easy_error::Error> {
+    pub fn chat(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
         let mut output = vec![];
         match self.send_with_history(prompt, &mut output) {
+            Ok(_) => {
+                return Ok(String::from_utf8_lossy(&output).to_string());
+            }
+            Err(err) => easy_error::bail!("{:?}", err),
+        }
+    }
+
+    pub fn ask(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
+        let mut output = vec![];
+        match self.send_without_history_history(prompt, &mut output) {
             Ok(_) => {
                 return Ok(String::from_utf8_lossy(&output).to_string());
             }
@@ -236,13 +260,17 @@ impl DeepThought {
                 easy_error::bail!("MODEL ERROR: {:?}", err);
             }
         };
-        Ok(DeepThought{
-            backend:        backend,
-            model:          model,
+        Ok(DeepThought {
+            backend: backend,
+            model: model,
         })
     }
     pub fn chat(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
         self.model.chat(prompt)
+    }
+
+    pub fn ask(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
+        self.model.ask(prompt)
     }
 
     pub fn c(&mut self, prompt: Value) -> Result<Value, easy_error::Error> {
@@ -254,6 +282,20 @@ impl DeepThought {
             Err(err) => easy_error::bail!("Error in prompt conversion: {}", err),
         };
         match self.chat(&prompt_str) {
+            Ok(res) => return Ok(Value::from_str(&res)),
+            Err(err) => easy_error::bail!("LLAMA.CPP error: {}", err),
+        };
+    }
+
+    pub fn a(&mut self, prompt: Value) -> Result<Value, easy_error::Error> {
+        let prompt_str = match prompt.conv(STRING) {
+            Ok(str_val) => match str_val.cast_string() {
+                Ok(prompt_str) => prompt_str,
+                Err(err) => easy_error::bail!("Error in prompt casting: {}", err),
+            },
+            Err(err) => easy_error::bail!("Error in prompt conversion: {}", err),
+        };
+        match self.ask(&prompt_str) {
             Ok(res) => return Ok(Value::from_str(&res)),
             Err(err) => easy_error::bail!("LLAMA.CPP error: {}", err),
         };
