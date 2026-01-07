@@ -11,6 +11,6 @@ keywords = ["ai", "llama", "llama-cpp"]
 [dependencies]
 easy-error = "1.0.0"
 lazy_static = "1.5.0"
-llama-cpp-2 = { version = "0.1.*", features = ["cuda", "sampler"] }
+llama-cpp-2 = { version = "0.1.*", features = ["sampler"] }
 log = "0.4.29"
 rust_dynamic = "0.48.0"
