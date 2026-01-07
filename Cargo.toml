@@ -9,8 +9,8 @@ categories = ["development-tools"]
 keywords = ["ai", "llama", "llama-cpp"]
 
 [dependencies]
-easy-error = "1.0.0"
-lazy_static = "1.5.0"
+easy-error = "1.*.*"
+lazy_static = "1.5.*"
 llama-cpp-2 = { version = "0.1.*", features = ["sampler"] }
-log = "0.4.29"
-rust_dynamic = "0.48.0"
+log = "0.4.*"
+rust_dynamic = "0.*.*"
