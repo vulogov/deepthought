@@ -2,6 +2,11 @@
 name = "deepthought"
 version = "0.1.0"
 edition = "2024"
+description = "Functional wrapper around Llama.cpp with Rust Dynamic datatypes support"
+license-file = "LICENSE"
+repository = "https://github.com/vulogov/deepthought"
+categories = ["ai"]
+keywords = ["ai", "llama", "cpp", "rust", "dynamic", "datatypes", "wrapper", "llama-cpp"]
 
 [dependencies]
 easy-error = "1.0.0"
