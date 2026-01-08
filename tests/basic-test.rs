@@ -39,9 +39,9 @@ mod tests {
     fn test_load_model_and_embed() {
         let dtb = DeepThoughtBackend::new().unwrap();
         let mut dtm = dtb
-            .load_model(&std::env::var("LLAMATEST_GGUF").unwrap(), "You are robot!")
+            .load_model("nomic-embed-text-v1.Q5_K_M.gguf", "You are robot!")
             .unwrap();
         let emb = dtm.embed(&["Hello world!"]).unwrap();
-        println!("{:?}", emb);
+        assert_eq!(emb[0].len(), 768);
     }
 }
