@@ -100,7 +100,7 @@ You can use following models for the crate testing.
 
 - `Llama-3.2-3B-Instruct-Q6_K`: https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf
 - `Athena-1-0.5B-Q4_K_M`: https://huggingface.co/itlwas/Athena-1-0.5B-Q4_K_M-GGUF/resolve/main/athena-1-0.5b-q4_k_m.gguf?download=true
-- `Qwen2.5-0.5B-Instruct-GGUF`: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q3_k_m.gguf?download=true
+- `Qwen2.5-0.5B-Instruct-Q3_K_M`: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q3_k_m.gguf?download=true
 
 ## Credit
 

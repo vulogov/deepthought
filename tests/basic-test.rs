@@ -2,7 +2,7 @@
 mod tests {
     #![allow(unused_imports)]
     use super::*;
-    use deepthought::*;
+    use deepthought::{DeepThought, DeepThoughtBackend, DeepThoughtModel};
     use rust_dynamic::value::Value;
 
     #[test]
