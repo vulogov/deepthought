@@ -1,6 +1,6 @@
 [package]
 name = "deepthought"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 description = "Functional wrapper around Llama.cpp with Rust Dynamic datatypes support"
 license-file = "LICENSE"
