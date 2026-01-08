@@ -17,6 +17,7 @@ impl DeepThought {
             }
         };
         Ok(DeepThought {
+            dbpath: ".".to_string(),
             backend: backend,
             model: model,
             embed_model: None,

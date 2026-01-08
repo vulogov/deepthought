@@ -16,6 +16,7 @@ use rust_dynamic::value::Value;
 
 pub mod deepthought;
 pub mod deepthought_backend;
+pub mod deepthought_builder;
 pub mod deepthought_model;
 
 //
@@ -37,9 +38,18 @@ pub struct DeepThoughtModel {
 }
 
 pub struct DeepThought {
+    pub dbpath: String,
     pub backend: DeepThoughtBackend,
     pub model: DeepThoughtModel,
     pub embed_model: Option<DeepThoughtModel>,
+}
+
+pub struct DeepThoughtBuilder {
+    dbpath: Option<String>,
+    context_length: Option<usize>,
+    batch_size: Option<usize>,
+    chat_model_gguf: Option<String>,
+    embed_model_gguf: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
