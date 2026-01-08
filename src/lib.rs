@@ -53,6 +53,7 @@ pub struct DeepThoughtModel {
 pub struct DeepThought {
     pub backend: DeepThoughtBackend,
     pub model: DeepThoughtModel,
+    pub embed_model: Option<DeepThoughtModel>,
 }
 
 impl DeepThoughtBackend {
@@ -354,14 +355,37 @@ impl DeepThought {
         Ok(DeepThought {
             backend: backend,
             model: model,
+            embed_model: None,
         })
     }
+
+    pub fn embed_model(&mut self, gguf_model: &str) -> Result<(), easy_error::Error> {
+        let model = match self.backend.load_model(gguf_model, "You are the robot!") {
+            Ok(model) => model,
+            Err(err) => {
+                easy_error::bail!("EMBED MODEL ERROR: {:?}", err);
+            }
+        };
+        self.embed_model = Some(model);
+        Ok(())
+    }
+
     pub fn chat(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
         self.model.chat(prompt)
     }
 
     pub fn ask(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
         self.model.ask(prompt)
+    }
+
+    pub fn embed(&mut self, prompt: &str) -> Result<Vec<Vec<f32>>, easy_error::Error> {
+        match self.embed_model {
+            Some(ref mut model) => match model.embed(&[prompt]) {
+                Ok(embeddings) => Ok(embeddings),
+                Err(err) => easy_error::bail!("EMBED ERROR: {:?}", err),
+            },
+            None => easy_error::bail!("Embedding model not loaded"),
+        }
     }
 
     pub fn c(&mut self, prompt: Value) -> Result<Value, easy_error::Error> {
