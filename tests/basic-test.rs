@@ -34,4 +34,14 @@ mod tests {
         let res = dt.chat("Who are you?").unwrap();
         assert!(res.to_lowercase().contains("model"));
     }
+
+    #[test]
+    fn test_load_model_and_embed() {
+        let dtb = DeepThoughtBackend::new().unwrap();
+        let mut dtm = dtb
+            .load_model(&std::env::var("LLAMATEST_GGUF").unwrap(), "You are robot!")
+            .unwrap();
+        let emb = dtm.embed(&["Hello world!"]).unwrap();
+        println!("{:?}", emb);
+    }
 }

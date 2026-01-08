@@ -1,6 +1,6 @@
 extern crate log;
 
-use std::num::NonZeroU32;
+use std::num::{NonZero, NonZeroU32};
 
 use std::{io::Write, sync::Arc};
 
@@ -45,7 +45,7 @@ pub struct DeepThoughtModel {
     pub batch_size: usize,
     registry: DeepThoughtBackend,
     model: LlamaModel,
-    chat_template: LlamaChatTemplate,
+    chat_template: Option<LlamaChatTemplate>,
     messages: Vec<LlamaChatMessage>,
 }
 
@@ -83,7 +83,10 @@ impl DeepThoughtBackend {
     ) -> Result<DeepThoughtModel, Error> {
         let model_params = LlamaModelParams::default();
         let model = LlamaModel::load_from_file(&self.backend, model_path, &model_params)?;
-        let chat_template = model.chat_template(None)?;
+        let chat_template = match model.chat_template(None) {
+            Ok(template) => Some(template),
+            Err(_) => None,
+        };
 
         Ok(DeepThoughtModel {
             registry: self.clone(),
@@ -158,6 +161,13 @@ impl DeepThoughtModel {
     }
 
     fn infer(&mut self, prompt: &str, output: &mut impl Write, history: bool) -> Result<(), Error> {
+        let chat_template = match self.chat_template {
+            Some(ref template) => template.clone(),
+            None => match LlamaChatTemplate::new("chatml") {
+                Ok(template) => template,
+                Err(err) => return Err(format!("{}", err).into()),
+            },
+        };
         if history {
             self.messages.push(LlamaChatMessage::new(
                 "user".to_string(),
@@ -167,7 +177,7 @@ impl DeepThoughtModel {
 
         let prompt = self
             .model
-            .apply_chat_template(&self.chat_template, &self.messages, true)?;
+            .apply_chat_template(&chat_template, &self.messages, true)?;
         let tokens = self.model.str_to_token(&prompt, AddBos::Always)?;
 
         let context_params = LlamaContextParams::default()
@@ -228,6 +238,76 @@ impl DeepThoughtModel {
         let _ = self.messages.pop();
 
         Ok(())
+    }
+
+    pub fn embed(&mut self, text: &[impl AsRef<str>]) -> Result<Vec<Vec<f32>>, Error> {
+        // Tokenize the text.
+        let mut tokens = Vec::with_capacity(text.len());
+        for text in text {
+            tokens.push(self.model.str_to_token(text.as_ref(), AddBos::Always)?);
+        }
+
+        // Prepare inference context.
+        let thread_count = std::thread::available_parallelism()
+            .unwrap_or(NonZero::new(1).unwrap())
+            .get() as i32;
+        let context_params = LlamaContextParams::default()
+            .with_n_batch(DEFAULT_CONTEXT_LENGTH as u32)
+            .with_n_ubatch(DEFAULT_CONTEXT_LENGTH as u32)
+            .with_n_ctx(NonZeroU32::new(DEFAULT_CONTEXT_LENGTH as u32))
+            .with_n_threads(thread_count)
+            .with_n_threads_batch(thread_count)
+            .with_embeddings(true);
+        let mut context = self
+            .model
+            .new_context(&self.registry.backend, context_params)?;
+
+        // Make sure the KV cache is big enough to hold all the text.
+        let n_ctx = context.n_ctx() as usize;
+        let n_ubatch = context.n_ubatch() as usize;
+        for tokens in &tokens {
+            if n_ctx < tokens.len() {
+                return Err(Error::ContextSize {
+                    maximum: n_ubatch,
+                    actual: tokens.len(),
+                });
+            } else if n_ubatch < tokens.len() {
+                return Err(Error::MicrobatchSize {
+                    maximum: n_ubatch,
+                    actual: tokens.len(),
+                });
+            }
+        }
+
+        // Prepare a reusable batch.
+        let mut batch = LlamaBatch::new(n_ctx, 1);
+
+        // TODO: @caer: include multiple tokens per batch if possible.
+        // Embed batches.
+        let mut embeddings = Vec::with_capacity(tokens.len());
+        for tokens in tokens {
+            batch.add_sequence(&tokens, 0, false)?;
+
+            // Run inference for embedding.
+            context.clear_kv_cache();
+            context.decode(&mut batch)?;
+
+            // Extract embedding from the model.
+            let embedding = context.embeddings_seq_ith(0)?;
+
+            // Normalize embedding.
+            let embedding_magnitude = embedding
+                .iter()
+                .fold(0.0, |acc, &val| val.mul_add(val, acc))
+                .sqrt();
+            let embedding: Vec<_> = embedding
+                .iter()
+                .map(|&val| val / embedding_magnitude)
+                .collect();
+
+            embeddings.push(embedding);
+        }
+        Ok(embeddings)
     }
 
     pub fn chat(&mut self, prompt: &str) -> Result<String, easy_error::Error> {
