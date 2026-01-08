@@ -46,6 +46,7 @@ pub struct DeepThoughtModel {
     registry: DeepThoughtBackend,
     model: LlamaModel,
     chat_template: Option<LlamaChatTemplate>,
+    system_prompt: String,
     messages: Vec<LlamaChatMessage>,
 }
 
@@ -94,6 +95,7 @@ impl DeepThoughtBackend {
             context_length: DEFAULT_CONTEXT_LENGTH,
             model,
             chat_template,
+            system_prompt: system_prompt.to_string(),
             messages: vec![LlamaChatMessage::new(
                 "system".to_string(),
                 system_prompt.to_string(),
@@ -107,8 +109,12 @@ impl DeepThoughtBackend {
 }
 
 impl DeepThoughtModel {
-    pub fn reset_messages(&mut self, system_prompt: &str) -> Result<(), Error> {
+    pub fn reset_messages(&mut self, system_prompt: Option<&str>) -> Result<(), Error> {
         self.messages.clear();
+        let system_prompt = match system_prompt {
+            Some(system_prompt) => system_prompt.to_string(),
+            None => self.system_prompt.clone(),
+        };
         self.messages.push(LlamaChatMessage::new(
             "system".to_string(),
             system_prompt.to_string(),
