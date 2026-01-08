@@ -12,6 +12,8 @@ impl DeepThoughtBuilder {
             embed_model_gguf: None,
             context_length: None,
             batch_size: None,
+            embedding_doc_prefix: String::from(""),
+            embedding_query_prefix: String::from(""),
         }
     }
 
@@ -27,6 +29,16 @@ impl DeepThoughtBuilder {
 
     pub fn dbpath(mut self, path: String) -> Self {
         self.dbpath = Some(path);
+        self
+    }
+
+    pub fn embedding_doc_prefix(mut self, prefix: String) -> Self {
+        self.embedding_doc_prefix = prefix;
+        self
+    }
+
+    pub fn embedding_query_prefix(mut self, prefix: String) -> Self {
+        self.embedding_query_prefix = prefix;
         self
     }
 

@@ -21,6 +21,8 @@ impl DeepThought {
             backend: backend,
             model: model,
             embed_model: None,
+            embedding_doc_prefix: String::from(""),
+            embedding_query_prefix: String::from(""),
         })
     }
 

@@ -42,6 +42,8 @@ pub struct DeepThought {
     pub backend: DeepThoughtBackend,
     pub model: DeepThoughtModel,
     pub embed_model: Option<DeepThoughtModel>,
+    pub embedding_doc_prefix: String,
+    pub embedding_query_prefix: String,
 }
 
 pub struct DeepThoughtBuilder {
@@ -50,6 +52,8 @@ pub struct DeepThoughtBuilder {
     batch_size: Option<usize>,
     chat_model_gguf: Option<String>,
     embed_model_gguf: Option<String>,
+    embedding_doc_prefix: String,
+    embedding_query_prefix: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
