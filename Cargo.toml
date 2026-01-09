@@ -14,3 +14,4 @@ lazy_static = "1.5.*"
 llama-cpp-2 = { version = "0.1.*", features = ["sampler"] }
 log = "0.4.*"
 rust_dynamic = "0.*.*"
+vecstore = "1.*.*"

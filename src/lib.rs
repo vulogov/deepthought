@@ -1,6 +1,6 @@
 extern crate log;
 
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use llama_cpp_2::{
     ApplyChatTemplateError, ChatTemplateError, DecodeError, EmbeddingsError, LlamaContextLoadError,
@@ -10,14 +10,17 @@ use llama_cpp_2::{
     llama_batch::BatchAddError,
     model::{LlamaChatMessage, LlamaChatTemplate, LlamaModel},
 };
-
 use rust_dynamic::types::*;
 use rust_dynamic::value::Value;
+use vecstore::VecStore;
 
 pub mod deepthought;
 pub mod deepthought_backend;
 pub mod deepthought_builder;
 pub mod deepthought_model;
+pub mod deepthought_vector;
+
+type DeepThoughtVector = Arc<RwLock<VecStore>>;
 
 //
 // LLAMA.CPP model wrapper
@@ -54,6 +57,11 @@ pub struct DeepThoughtBuilder {
     embed_model_gguf: Option<String>,
     embedding_doc_prefix: String,
     embedding_query_prefix: String,
+}
+
+pub struct DeepThoughtVecStore {
+    pub path: Option<String>,
+    pub conn: DeepThoughtVector,
 }
 
 #[derive(Debug, Clone, PartialEq)]
