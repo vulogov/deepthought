@@ -15,4 +15,7 @@ lazy_static = "1.5.*"
 llama-cpp-2 = { version = "0.1.*", features = ["sampler"] }
 log = "0.4.*"
 rust_dynamic = "0.*.*"
+took = "0.1.2"
 vecstore = "1.*.*"
+serde = { version = "1.0.*", features = ["derive"] }
+serde_json = { version = "1.0.*", default-features = true }

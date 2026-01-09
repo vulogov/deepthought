@@ -54,6 +54,8 @@ pub struct DeepThoughtBuilder {
     dbpath: Option<String>,
     context_length: Option<usize>,
     batch_size: Option<usize>,
+    chunk_size: Option<usize>,
+    chunk_overlap: Option<usize>,
     chat_model_gguf: Option<String>,
     embed_model_gguf: Option<String>,
     embedding_doc_prefix: String,
@@ -63,6 +65,8 @@ pub struct DeepThoughtBuilder {
 pub struct DeepThoughtVecStore {
     pub path: Option<String>,
     pub conn: DeepThoughtVector,
+    chunk_size: usize,
+    chunk_overlap: usize,
 }
 
 #[derive(Debug, Clone, PartialEq)]

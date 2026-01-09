@@ -414,6 +414,9 @@ dependencies = [
  "llama-cpp-2",
  "log",
  "rust_dynamic",
+ "serde",
+ "serde_json",
+ "took",
  "vecstore",
 ]
 
@@ -1826,6 +1829,12 @@ checksum = "f60246a4944f24f6e018aa17cdeffb7818b76356965d03b07d6a9886e8962185"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "took"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af1ea65cb083be6f0b13ba9a26eec5eb563e55198e318cbb0f525d593fbd349e"
 
 [[package]]
 name = "tracing"

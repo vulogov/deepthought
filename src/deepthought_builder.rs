@@ -5,6 +5,7 @@ use grainfs::dir::create_dir_recursive;
 use grainfs::path::*;
 
 use crate::deepthought_backend::{DEFAULT_BATCH_SIZE, DEFAULT_CONTEXT_LENGTH};
+use crate::deepthought_vector::{DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE};
 
 impl DeepThoughtBuilder {
     pub fn new() -> Self {
@@ -16,6 +17,8 @@ impl DeepThoughtBuilder {
             batch_size: None,
             embedding_doc_prefix: String::from(""),
             embedding_query_prefix: String::from(""),
+            chunk_size: Some(DEFAULT_CHUNK_SIZE),
+            chunk_overlap: Some(DEFAULT_CHUNK_OVERLAP),
         }
     }
 
@@ -51,6 +54,16 @@ impl DeepThoughtBuilder {
 
     pub fn batch_size(mut self, size: usize) -> Self {
         self.batch_size = Some(size);
+        self
+    }
+
+    pub fn chunk_size(mut self, size: usize) -> Self {
+        self.chunk_size = Some(size);
+        self
+    }
+
+    pub fn chunk_overlap(mut self, size: usize) -> Self {
+        self.chunk_overlap = Some(size);
         self
     }
 
@@ -105,7 +118,7 @@ impl DeepThoughtBuilder {
         };
         let mut model = match DeepThought::new(&chat_gguf) {
             Ok(model) => model,
-            Err(err) => bail!("ERROR creat8ing chat model: {}", err),
+            Err(err) => bail!("ERROR creating chat model: {}", err),
         };
         match self.embed_model_gguf {
             Some(path) => match model.embed_model(&path) {
@@ -124,10 +137,20 @@ impl DeepThoughtBuilder {
             Some(size) => size,
             None => DEFAULT_BATCH_SIZE,
         };
-        let vecstore = match DeepThoughtVecStore::new(dbpath) {
+        let chunk_size = match self.chunk_size {
+            Some(size) => size,
+            None => DEFAULT_CHUNK_SIZE,
+        };
+        let chunk_overlap = match self.chunk_overlap {
+            Some(size) => size,
+            None => DEFAULT_CHUNK_OVERLAP,
+        };
+        let mut vecstore = match DeepThoughtVecStore::new(dbpath) {
             Ok(vecstore) => vecstore,
             Err(err) => bail!("ERROR opening vector store: {}", err),
         };
+        vecstore.chunk_size = chunk_size;
+        vecstore.chunk_overlap = chunk_overlap;
         model.dbpath = dbpath.to_string();
         model.model.context_length = context_len;
         model.model.batch_size = batch_size;

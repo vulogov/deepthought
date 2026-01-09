@@ -83,4 +83,10 @@ impl DeepThought {
             Err(err) => easy_error::bail!("LLAMA.CPP error: {}", err),
         };
     }
+    pub fn sync(&mut self) -> Result<(), easy_error::Error> {
+        match &self.vecstore {
+            Some(vecstore) => vecstore.save_vectorstore(),
+            None => Ok(()),
+        }
+    }
 }
