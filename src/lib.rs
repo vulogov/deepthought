@@ -47,6 +47,7 @@ pub struct DeepThought {
     pub embed_model: Option<DeepThoughtModel>,
     pub embedding_doc_prefix: String,
     pub embedding_query_prefix: String,
+    pub vecstore: Option<DeepThoughtVecStore>,
 }
 
 pub struct DeepThoughtBuilder {

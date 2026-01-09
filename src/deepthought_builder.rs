@@ -1,5 +1,5 @@
 extern crate log;
-use crate::{DeepThought, DeepThoughtBuilder};
+use crate::{DeepThought, DeepThoughtBuilder, DeepThoughtVecStore};
 use easy_error::bail;
 use grainfs::dir::create_dir_recursive;
 use grainfs::path::*;
@@ -124,9 +124,14 @@ impl DeepThoughtBuilder {
             Some(size) => size,
             None => DEFAULT_BATCH_SIZE,
         };
+        let vecstore = match DeepThoughtVecStore::new(dbpath) {
+            Ok(vecstore) => vecstore,
+            Err(err) => bail!("ERROR opening vector store: {}", err),
+        };
         model.dbpath = dbpath.to_string();
         model.model.context_length = context_len;
         model.model.batch_size = batch_size;
+        model.vecstore = Some(vecstore);
         Ok(model)
     }
 }
