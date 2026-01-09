@@ -19,4 +19,22 @@ impl DeepThoughtVecStore {
         };
         Ok(vector)
     }
+    pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {
+        let conn = self.conn.clone();
+        let conn_write = match conn.write() {
+            Ok(conn_write) => conn_write,
+            Err(err) => {
+                bail!("Failed to acquire write lock: {:?}", err);
+            }
+        };
+        match conn_write.save() {
+            Ok(_) => {}
+            Err(err) => {
+                bail!("Failed to save telemetry database: {:?}", err);
+            }
+        }
+        drop(conn_write);
+        drop(conn);
+        Ok(())
+    }
 }

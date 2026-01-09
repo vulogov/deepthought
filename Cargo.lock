@@ -409,6 +409,7 @@ name = "deepthought"
 version = "0.1.3"
 dependencies = [
  "easy-error",
+ "grainfs",
  "lazy_static",
  "llama-cpp-2",
  "log",
@@ -722,6 +723,12 @@ name = "glob"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
+
+[[package]]
+name = "grainfs"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "158d7e6cb5103f940c78ecadc12e74695e3c8330c79ab9d08693ac54975e92eb"
 
 [[package]]
 name = "hashbrown"
