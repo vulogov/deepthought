@@ -83,6 +83,20 @@ impl DeepThought {
             Err(err) => easy_error::bail!("LLAMA.CPP error: {}", err),
         };
     }
+    pub fn add_document(&self, doc: &str) -> Result<(), easy_error::Error> {
+        match self.vecstore {
+            Some(vecstore) => match self.embed_model {
+                Some(embed_model) => {
+                    match vecstore.add_document(nanoid::nanoid!(), doc, embed_model) {
+                        Ok(_) => Ok(()),
+                        Err(err) => bail!("Error adding document: {}", err),
+                    }
+                }
+                None => bail!("Embedding model not set"),
+            },
+            None => bail!("Vector store not set"),
+        }
+    }
     pub fn sync(&mut self) -> Result<(), easy_error::Error> {
         match &self.vecstore {
             Some(vecstore) => vecstore.save_vectorstore(),

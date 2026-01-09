@@ -413,6 +413,7 @@ dependencies = [
  "lazy_static",
  "llama-cpp-2",
  "log",
+ "nanoid",
  "rust_dynamic",
  "serde",
  "serde_json",

@@ -26,6 +26,7 @@ impl DeepThoughtVecStore {
             conn: tvs,
             chunk_size: DEFAULT_CHUNK_SIZE,
             chunk_overlap: DEFAULT_CHUNK_OVERLAP,
+            embedding_prefix: "".to_string(),
         };
         Ok(vector)
     }
@@ -55,7 +56,7 @@ impl DeepThoughtVecStore {
         };
         let mut n = 0;
         for c in chunks.iter() {
-            let vector = match embedder.embed(&[c]) {
+            let vector = match embedder.embed(&[format!("{} {}", self.embedding_prefix, c)]) {
                 Ok(vector) => vector[0].clone(),
                 Err(err) => bail!("Failed to embed text: {:?}", err),
             };

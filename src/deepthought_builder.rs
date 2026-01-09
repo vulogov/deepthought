@@ -151,7 +151,7 @@ impl DeepThoughtBuilder {
         };
         vecstore.chunk_size = chunk_size;
         vecstore.chunk_overlap = chunk_overlap;
-        model.dbpath = dbpath.to_string();
+        vecstore.embedding_prefix = self.embedding_doc_prefix.clone();
         model.model.context_length = context_len;
         model.model.batch_size = batch_size;
         model.vecstore = Some(vecstore);

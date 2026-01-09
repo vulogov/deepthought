@@ -67,6 +67,7 @@ pub struct DeepThoughtVecStore {
     pub conn: DeepThoughtVector,
     chunk_size: usize,
     chunk_overlap: usize,
+    embedding_prefix: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
