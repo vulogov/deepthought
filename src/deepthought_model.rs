@@ -151,7 +151,7 @@ impl DeepThoughtModel {
         Ok(())
     }
 
-    pub fn embed(&mut self, text: &[impl AsRef<str>]) -> Result<Vec<Vec<f32>>, Error> {
+    pub fn embed(&self, text: &[impl AsRef<str>]) -> Result<Vec<Vec<f32>>, Error> {
         // Tokenize the text.
         let mut tokens = Vec::with_capacity(text.len());
         for text in text {

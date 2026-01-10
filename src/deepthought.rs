@@ -1,5 +1,7 @@
 extern crate log;
 
+use easy_error::bail;
+
 use crate::*;
 
 impl DeepThought {
@@ -83,17 +85,18 @@ impl DeepThought {
             Err(err) => easy_error::bail!("LLAMA.CPP error: {}", err),
         };
     }
-    pub fn add_document(&self, doc: &str) -> Result<(), easy_error::Error> {
+    pub fn add_document(&mut self, doc: &str) -> Result<(), easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
         match self.vecstore {
-            Some(vecstore) => match self.embed_model {
-                Some(embed_model) => {
-                    match vecstore.add_document(nanoid::nanoid!(), doc, embed_model) {
-                        Ok(_) => Ok(()),
-                        Err(err) => bail!("Error adding document: {}", err),
-                    }
+            Some(ref mut vecstore) => {
+                match vecstore.add_document(&nanoid::nanoid!(), doc, &embedder) {
+                    Ok(_) => Ok(()),
+                    Err(err) => bail!("Error adding document: {}", err),
                 }
-                None => bail!("Embedding model not set"),
-            },
+            }
             None => bail!("Vector store not set"),
         }
     }

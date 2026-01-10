@@ -7,9 +7,9 @@ use std::time::Duration;
 use took::Timer;
 
 use crate::*;
-use vecstore::TextSplitter;
 use vecstore::text_splitter::RecursiveCharacterTextSplitter;
-use vecstore::{Metadata, VecStore};
+use vecstore::{HybridQuery, TextSplitter};
+use vecstore::{Metadata, Neighbor, VecStore};
 
 pub const DEFAULT_CHUNK_SIZE: usize = 1024;
 pub const DEFAULT_CHUNK_OVERLAP: usize = 128;
@@ -45,7 +45,7 @@ impl DeepThoughtVecStore {
         &mut self,
         id: &str,
         text: &str,
-        embedder: &mut DeepThoughtModel,
+        embedder: &DeepThoughtModel,
     ) -> Result<Duration, easy_error::Error> {
         let timer = Timer::new();
         let chunks: Vec<String> = self.split_text(text);
@@ -80,6 +80,37 @@ impl DeepThoughtVecStore {
         let t = timer.took();
         let duration = t.as_std();
         Ok(*duration)
+    }
+    pub fn query(
+        &self,
+        embedding: Vec<f32>,
+        query: &str,
+        alpha: f32,
+        k: usize,
+    ) -> Result<Vec<Neighbor>, easy_error::Error> {
+        let conn = self.conn.clone();
+        let conn_read = match conn.read() {
+            Ok(conn_read) => conn_read,
+            Err(err) => {
+                bail!("Failed to acquire read lock: {:?}", err);
+            }
+        };
+        let h_query = HybridQuery {
+            vector: embedding,
+            keywords: query.to_string(),
+            filter: None,
+            k,
+            alpha,
+        };
+        let results = match conn_read.hybrid_query(h_query) {
+            Ok(results) => results,
+            Err(err) => {
+                bail!("Failed to query vector store: {:?}", err);
+            }
+        };
+        drop(conn_read);
+        drop(conn);
+        Ok(results)
     }
     pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {
         let conn = self.conn.clone();
