@@ -81,7 +81,7 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
-    pub fn query(
+    fn query_neighbors(
         &self,
         embedding: Vec<f32>,
         query: &str,
