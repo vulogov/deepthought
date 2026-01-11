@@ -60,6 +60,8 @@ pub struct DeepThoughtBuilder {
     embed_model_gguf: Option<String>,
     embedding_doc_prefix: String,
     embedding_query_prefix: String,
+    alpha: f32,
+    k: usize,
 }
 
 pub struct DeepThoughtVecStore {
@@ -67,6 +69,8 @@ pub struct DeepThoughtVecStore {
     pub conn: DeepThoughtVector,
     chunk_size: usize,
     chunk_overlap: usize,
+    k: usize,
+    alpha: f32,
     embedding_prefix: String,
 }
 

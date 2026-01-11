@@ -5,7 +5,9 @@ use grainfs::dir::create_dir_recursive;
 use grainfs::path::*;
 
 use crate::deepthought_backend::{DEFAULT_BATCH_SIZE, DEFAULT_CONTEXT_LENGTH};
-use crate::deepthought_vector::{DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE};
+use crate::deepthought_vector::{
+    DEFAULT_ALPHA, DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, DEFAULT_K,
+};
 
 impl DeepThoughtBuilder {
     pub fn new() -> Self {
@@ -19,6 +21,8 @@ impl DeepThoughtBuilder {
             embedding_query_prefix: String::from(""),
             chunk_size: Some(DEFAULT_CHUNK_SIZE),
             chunk_overlap: Some(DEFAULT_CHUNK_OVERLAP),
+            alpha: DEFAULT_ALPHA,
+            k: DEFAULT_K,
         }
     }
 
@@ -64,6 +68,14 @@ impl DeepThoughtBuilder {
 
     pub fn chunk_overlap(mut self, size: usize) -> Self {
         self.chunk_overlap = Some(size);
+        self
+    }
+    pub fn k(mut self, size: usize) -> Self {
+        self.k = size;
+        self
+    }
+    pub fn alpha(mut self, alpha: f32) -> Self {
+        self.alpha = alpha;
         self
     }
 
@@ -151,6 +163,8 @@ impl DeepThoughtBuilder {
         };
         vecstore.chunk_size = chunk_size;
         vecstore.chunk_overlap = chunk_overlap;
+        vecstore.k = self.k;
+        vecstore.alpha = self.alpha;
         vecstore.embedding_prefix = self.embedding_doc_prefix.clone();
         model.model.context_length = context_len;
         model.model.batch_size = batch_size;

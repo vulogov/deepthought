@@ -13,6 +13,8 @@ use vecstore::{Metadata, Neighbor, VecStore};
 
 pub const DEFAULT_CHUNK_SIZE: usize = 1024;
 pub const DEFAULT_CHUNK_OVERLAP: usize = 128;
+pub const DEFAULT_K: usize = 10;
+pub const DEFAULT_ALPHA: f32 = 0.7;
 
 impl DeepThoughtVecStore {
     pub fn new(path: &str) -> Result<Self, easy_error::Error> {
@@ -27,6 +29,8 @@ impl DeepThoughtVecStore {
             chunk_size: DEFAULT_CHUNK_SIZE,
             chunk_overlap: DEFAULT_CHUNK_OVERLAP,
             embedding_prefix: "".to_string(),
+            k: DEFAULT_K,
+            alpha: DEFAULT_ALPHA,
         };
         Ok(vector)
     }
@@ -85,8 +89,6 @@ impl DeepThoughtVecStore {
         &self,
         embedding: Vec<f32>,
         query: &str,
-        alpha: f32,
-        k: usize,
     ) -> Result<Vec<Neighbor>, easy_error::Error> {
         let conn = self.conn.clone();
         let conn_read = match conn.read() {
@@ -99,8 +101,8 @@ impl DeepThoughtVecStore {
             vector: embedding,
             keywords: query.to_string(),
             filter: None,
-            k,
-            alpha,
+            k: self.k,
+            alpha: self.alpha,
         };
         let results = match conn_read.hybrid_query(h_query) {
             Ok(results) => results,
@@ -112,6 +114,7 @@ impl DeepThoughtVecStore {
         drop(conn);
         Ok(results)
     }
+
     pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {
         let conn = self.conn.clone();
         let conn_write = match conn.write() {
