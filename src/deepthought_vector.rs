@@ -69,6 +69,7 @@ impl DeepThoughtVecStore {
             };
             meta.fields.insert("id".into(), serde_json::json!(id));
             meta.fields.insert("n".into(), serde_json::json!(n));
+            meta.fields.insert("text".into(), serde_json::json!(text));
             match conn.upsert(id.into(), vector.to_vec(), meta) {
                 Ok(_) => {}
                 Err(err) => bail!("Failed to add document: {}", err),
@@ -113,6 +114,27 @@ impl DeepThoughtVecStore {
         drop(conn_read);
         drop(conn);
         Ok(results)
+    }
+
+    pub fn query(
+        &self,
+        embedding: Vec<f32>,
+        query: &str,
+    ) -> Result<Vec<String>, easy_error::Error> {
+        let mut res: Vec<String> = Vec::new();
+        let neighbors = match self.query_neighbors(embedding, query) {
+            Ok(neighbors) => neighbors,
+            Err(err) => {
+                bail!("Failed to query vector store: {:?}", err);
+            }
+        };
+        for neighbor in neighbors.iter() {
+            match neighbor.metadata.fields.get("text") {
+                Some(text) => res.push(text.to_string()),
+                None => {}
+            }
+        }
+        Ok(res)
     }
 
     pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {

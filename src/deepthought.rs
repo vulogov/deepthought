@@ -100,6 +100,29 @@ impl DeepThought {
             None => bail!("Vector store not set"),
         }
     }
+    pub fn query(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        let query = format!("{} {}", self.embedding_query_prefix, q);
+        let vector = match embedder.embed(&[query]) {
+            Ok(vector) => vector,
+            Err(err) => bail!("Error embedding query: {:?}", err),
+        };
+        let mut results: Vec<String> = match self.vecstore {
+            Some(ref mut vecstore) => match vecstore.query(vector[0].clone(), q) {
+                Ok(results) => results,
+                Err(err) => bail!("Error adding document: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        };
+        match self.chat(q) {
+            Ok(res) => results.push(res),
+            Err(err) => bail!("Error chatting: {}", err),
+        }
+        Ok(results)
+    }
     pub fn sync(&mut self) -> Result<(), easy_error::Error> {
         match &self.vecstore {
             Some(vecstore) => vecstore.save_vectorstore(),
