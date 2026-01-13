@@ -17,6 +17,7 @@ use vecstore::VecStore;
 pub mod deepthought;
 pub mod deepthought_backend;
 pub mod deepthought_builder;
+pub mod deepthought_context;
 pub mod deepthought_model;
 pub mod deepthought_vector;
 
@@ -38,6 +39,11 @@ pub struct DeepThoughtModel {
     pub chat_template: Option<LlamaChatTemplate>,
     pub system_prompt: String,
     pub messages: Vec<LlamaChatMessage>,
+}
+
+pub struct DeepThoughtContext {
+    max_msg: Option<usize>,
+    messages: Vec<LlamaChatMessage>,
 }
 
 pub struct DeepThought {
