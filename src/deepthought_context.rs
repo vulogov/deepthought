@@ -76,4 +76,7 @@ impl DeepThoughtContext {
     pub fn messages(&self) -> &Vec<LlamaChatMessage> {
         &self.messages
     }
+    pub fn remove_last(&mut self) {
+        let _ = self.messages.pop();
+    }
 }

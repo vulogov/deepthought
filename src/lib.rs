@@ -18,6 +18,7 @@ pub mod deepthought;
 pub mod deepthought_backend;
 pub mod deepthought_builder;
 pub mod deepthought_context;
+pub mod deepthought_ctx_model;
 pub mod deepthought_model;
 pub mod deepthought_vector;
 
@@ -39,6 +40,15 @@ pub struct DeepThoughtModel {
     pub chat_template: Option<LlamaChatTemplate>,
     pub system_prompt: String,
     pub messages: Vec<LlamaChatMessage>,
+}
+
+pub struct DeepThoughtCtxModel {
+    pub context_length: usize,
+    pub batch_size: usize,
+    pub registry: DeepThoughtBackend,
+    pub model: LlamaModel,
+    pub chat_template: Option<LlamaChatTemplate>,
+    pub system_prompt: String,
 }
 
 pub struct DeepThoughtContext {
