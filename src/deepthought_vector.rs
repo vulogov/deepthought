@@ -60,6 +60,7 @@ impl DeepThoughtVecStore {
         };
         let mut n = 0;
         for c in chunks.iter() {
+	    let c_id: &str = &format!("{}-{}", &id, n);
             let vector = match embedder.embed(&[format!("{} {}", self.embedding_prefix, c)]) {
                 Ok(vector) => vector[0].clone(),
                 Err(err) => bail!("Failed to embed text: {:?}", err),
@@ -67,14 +68,14 @@ impl DeepThoughtVecStore {
             let mut meta = Metadata {
                 fields: HashMap::new(),
             };
-            meta.fields.insert("id".into(), serde_json::json!(id));
+            meta.fields.insert("id".into(), serde_json::json!(c_id));
             meta.fields.insert("n".into(), serde_json::json!(n));
-            meta.fields.insert("text".into(), serde_json::json!(text));
-            match conn.upsert(id.into(), vector.to_vec(), meta) {
+            meta.fields.insert("text".into(), serde_json::json!(c));
+            match conn.upsert(c_id.into(), vector.to_vec(), meta) {
                 Ok(_) => {}
                 Err(err) => bail!("Failed to add document: {}", err),
             };
-            match conn.index_text(id.into(), c) {
+            match conn.index_text(c_id.into(), c) {
                 Ok(_) => {}
                 Err(err) => bail!("Failed to index document: {}", err),
             };

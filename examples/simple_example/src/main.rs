@@ -24,11 +24,13 @@ fn main() {
     let mut dt = DeepThoughtBuilder::new()
 			.chat_model_gguf("../../Llama-3.2-3B-Instruct-Q6_K.gguf".to_string())
 			.embed_model_gguf("../../nomic-embed-text-v1.Q5_K_M.gguf".to_string())
+			.chunk_size(128)
+			.chunk_overlap(8)
 			.build().unwrap();
     println!("Embedding size = {}", dt.embed("Hello world").unwrap()[0].len());
     dt.add_document(DOCUMENT).unwrap();
     dt.sync().unwrap();
-    let res = dt.query("Who is Leo Tolstoy?").unwrap();
+    let res = dt.query("What relationship between Tolstoy and Gandhi?").unwrap();
     for doc in res.iter() {
 	println!("{}", &doc);
 	println!(">>>>>>>>>>>>>>>>");
