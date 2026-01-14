@@ -69,6 +69,28 @@ impl DeepThoughtBackend {
         })
     }
 
+    pub fn load_context_model(
+        &self,
+        model_path: &str,
+        system_prompt: &str,
+    ) -> Result<DeepThoughtCtxModel, Error> {
+        let model_params = LlamaModelParams::default();
+        let model = LlamaModel::load_from_file(&self.backend, model_path, &model_params)?;
+        let chat_template = match model.chat_template(None) {
+            Ok(template) => Some(template),
+            Err(_) => None,
+        };
+
+        Ok(DeepThoughtCtxModel {
+            registry: self.clone(),
+            batch_size: DEFAULT_BATCH_SIZE,
+            context_length: DEFAULT_CONTEXT_LENGTH,
+            model,
+            chat_template,
+            system_prompt: system_prompt.to_string(),
+        })
+    }
+
     pub fn supports_mlock() -> bool {
         llama_supports_mlock()
     }
