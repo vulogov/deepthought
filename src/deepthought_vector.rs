@@ -130,7 +130,13 @@ impl DeepThoughtVecStore {
         };
         for neighbor in neighbors.iter() {
             match neighbor.metadata.fields.get("text") {
-                Some(text) => res.push(text.to_string()),
+                Some(text) => {
+                    let text_str = match text.as_str() {
+                        Some(text_str) => text_str,
+                        None => bail!("Error converting json to str: {}", text),
+                    };
+                    res.push(text_str.to_string())
+                }
                 None => {}
             }
         }
