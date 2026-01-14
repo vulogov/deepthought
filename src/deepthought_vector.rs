@@ -15,6 +15,7 @@ pub const DEFAULT_CHUNK_SIZE: usize = 1024;
 pub const DEFAULT_CHUNK_OVERLAP: usize = 128;
 pub const DEFAULT_K: usize = 10;
 pub const DEFAULT_ALPHA: f32 = 0.7;
+pub const DEFAULT_MAX_SCORE: f32 = 0.3;
 
 impl DeepThoughtVecStore {
     pub fn new(path: &str) -> Result<Self, easy_error::Error> {
@@ -31,6 +32,7 @@ impl DeepThoughtVecStore {
             embedding_prefix: "".to_string(),
             k: DEFAULT_K,
             alpha: DEFAULT_ALPHA,
+            max_score: DEFAULT_MAX_SCORE,
         };
         Ok(vector)
     }
@@ -60,7 +62,7 @@ impl DeepThoughtVecStore {
         };
         let mut n = 0;
         for c in chunks.iter() {
-	    let c_id: &str = &format!("{}-{}", &id, n);
+            let c_id: &str = &format!("{}-{}", &id, n);
             let vector = match embedder.embed(&[format!("{} {}", self.embedding_prefix, c)]) {
                 Ok(vector) => vector[0].clone(),
                 Err(err) => bail!("Failed to embed text: {:?}", err),
@@ -106,12 +108,18 @@ impl DeepThoughtVecStore {
             k: self.k,
             alpha: self.alpha,
         };
-        let results = match conn_read.hybrid_query(h_query) {
+        let raws_results = match conn_read.hybrid_query(h_query) {
             Ok(results) => results,
             Err(err) => {
                 bail!("Failed to query vector store: {:?}", err);
             }
         };
+        let mut results: Vec<Neighbor> = Vec::new();
+        for n in raws_results.iter() {
+            if n.score <= self.max_score {
+                results.push(n.clone());
+            }
+        }
         drop(conn_read);
         drop(conn);
         Ok(results)

@@ -1,4 +1,4 @@
-use deepthought::{DeepThoughtBuilder};
+use deepthought::DeepThoughtBuilder;
 
 pub const DOCUMENT: &str = r#"
 Leo Tolstoy was born at Yasnaya Polyana, in Russia's Tula Province, the fourth of five children. The title of Count had been conferred on his ancestor in the early 18th century by Peter the Great. His parents died when he was a child, and he was brought up by relatives. In 1844 Tolstoy started his studies of law and oriental languages at Kazan University, but he never took a degree. Dissatisfied with the standard of education, he returned back to Yasnaya Polyana in the middle of his studies, and then spent much of his time in Moscow and St. Petersburg. In 1847 Tolstoy was treated for venereal disease. After contracting heavy gambling debts, Tolstoy accompanied his elder brother to the Caucasus in 1851, and joined an artillery regiment. In the 1850s Tolstoy also began his literary career, publishing the autobiographical trilogy Childhood (1852), Boyhood (1854), and Youth (1857).
@@ -22,17 +22,23 @@ Tolstoy's teachings influenced Gandhi in India, and the kibbutz movement in Pale
 
 fn main() {
     let mut dt = DeepThoughtBuilder::new()
-			.chat_model_gguf("../../Llama-3.2-3B-Instruct-Q6_K.gguf".to_string())
-			.embed_model_gguf("../../nomic-embed-text-v1.Q5_K_M.gguf".to_string())
-			.chunk_size(128)
-			.chunk_overlap(8)
-			.build().unwrap();
-    println!("Embedding size = {}", dt.embed("Hello world").unwrap()[0].len());
+        .chat_model_gguf("../../Llama-3.2-3B-Instruct-Q6_K.gguf".to_string())
+        .embed_model_gguf("../../nomic-embed-text-v1.Q5_K_M.gguf".to_string())
+        .chunk_size(1024)
+        .chunk_overlap(16)
+        .embedding_doc_prefix("search_document".to_string())
+        .embedding_query_prefix("search_query".to_string())
+        .build()
+        .unwrap();
+    println!(
+        "Embedding size = {}",
+        dt.embed("Hello world").unwrap()[0].len()
+    );
     dt.add_document(DOCUMENT).unwrap();
     dt.sync().unwrap();
-    let res = dt.query("What relationship between Tolstoy and Gandhi?").unwrap();
+    let res = dt.query("Who is Anna Karenina?").unwrap();
     for doc in res.iter() {
-	println!("{}", &doc);
-	println!(">>>>>>>>>>>>>>>>");
+        println!("{}", &doc);
+        println!(">>>>>>>>>>>>>>>>");
     }
 }

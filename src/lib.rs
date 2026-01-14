@@ -78,6 +78,7 @@ pub struct DeepThoughtBuilder {
     embedding_query_prefix: String,
     alpha: f32,
     k: usize,
+    max_score: f32,
 }
 
 pub struct DeepThoughtVecStore {
@@ -87,6 +88,7 @@ pub struct DeepThoughtVecStore {
     chunk_overlap: usize,
     k: usize,
     alpha: f32,
+    max_score: f32,
     embedding_prefix: String,
 }
 

@@ -6,7 +6,7 @@ use grainfs::path::*;
 
 use crate::deepthought_backend::{DEFAULT_BATCH_SIZE, DEFAULT_CONTEXT_LENGTH};
 use crate::deepthought_vector::{
-    DEFAULT_ALPHA, DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, DEFAULT_K,
+    DEFAULT_ALPHA, DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE, DEFAULT_K, DEFAULT_MAX_SCORE,
 };
 
 impl DeepThoughtBuilder {
@@ -23,6 +23,7 @@ impl DeepThoughtBuilder {
             chunk_overlap: Some(DEFAULT_CHUNK_OVERLAP),
             alpha: DEFAULT_ALPHA,
             k: DEFAULT_K,
+            max_score: DEFAULT_MAX_SCORE,
         }
     }
 
@@ -70,12 +71,19 @@ impl DeepThoughtBuilder {
         self.chunk_overlap = Some(size);
         self
     }
+
     pub fn k(mut self, size: usize) -> Self {
         self.k = size;
         self
     }
+
     pub fn alpha(mut self, alpha: f32) -> Self {
         self.alpha = alpha;
+        self
+    }
+
+    pub fn max_score(mut self, max_score: f32) -> Self {
+        self.max_score = max_score;
         self
     }
 
@@ -163,6 +171,7 @@ impl DeepThoughtBuilder {
         };
         vecstore.chunk_size = chunk_size;
         vecstore.chunk_overlap = chunk_overlap;
+        vecstore.max_score = self.max_score;
         vecstore.k = self.k;
         vecstore.alpha = self.alpha;
         vecstore.embedding_prefix = self.embedding_doc_prefix.clone();
