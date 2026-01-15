@@ -10,13 +10,14 @@ keywords = ["ai", "llama", "llama-cpp", "vecstore", "vector", "rag", "embedding"
 
 [dependencies]
 easy-error = "1.*.*"
-grainfs = "0.1.1"
+grainfs = "0.1.*"
 lazy_static = "1.5.*"
 llama-cpp-2 = { version = "0.1.*", features = ["sampler"] }
 log = "0.4.*"
 rust_dynamic = "0.*.*"
-took = "0.1.2"
+took = "0.1.*"
 vecstore = "1.*.*"
 serde = { version = "1.0.*", features = ["derive"] }
 serde_json = { version = "1.0.*", default-features = true }
-nanoid = "0.4.0"
+nanoid = "0.4.*"
+minijinja = "2.*.*"

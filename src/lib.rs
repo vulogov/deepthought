@@ -21,6 +21,7 @@ pub mod deepthought_context;
 pub mod deepthought_ctx_model;
 pub mod deepthought_model;
 pub mod deepthought_vector;
+pub mod deepthought_vector_output;
 
 type DeepThoughtVector = Arc<RwLock<VecStore>>;
 
