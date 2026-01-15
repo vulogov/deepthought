@@ -205,7 +205,10 @@ impl DeepThought {
     }
     pub fn len(&self) -> usize {
         match &self.vecstore {
-            Some(vecstore) => vecstore.count(),
+            Some(vecstore) => match vecstore.len() {
+                Ok(count) => count,
+                Err(_) => 0,
+            },
             None => 0,
         }
     }

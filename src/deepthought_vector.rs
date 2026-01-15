@@ -172,7 +172,19 @@ impl DeepThoughtVecStore {
         drop(conn);
         Ok(results)
     }
-
+    pub fn len(&self) -> Result<usize, easy_error::Error> {
+        let conn = self.conn.clone();
+        let conn_read = match conn.read() {
+            Ok(conn_read) => conn_read,
+            Err(err) => {
+                bail!("Failed to acquire read lock: {:?}", err);
+            }
+        };
+        let count = conn_read.count();
+        drop(conn_read);
+        drop(conn);
+        Ok(count)
+    }
     pub fn query(
         &self,
         embedding: Vec<f32>,
