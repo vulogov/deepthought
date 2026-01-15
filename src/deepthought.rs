@@ -100,6 +100,41 @@ impl DeepThought {
             None => bail!("Vector store not set"),
         }
     }
+    pub fn add_string(&mut self, doc: &str) -> Result<(), easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        match self.vecstore {
+            Some(ref mut vecstore) => {
+                match vecstore.add_string(&nanoid::nanoid!(), doc, &embedder) {
+                    Ok(_) => Ok(()),
+                    Err(err) => bail!("Error adding string: {}", err),
+                }
+            }
+            None => bail!("Vector store not set"),
+        }
+    }
+    pub fn add_value(&mut self, doc: Value) -> Result<(), easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        let value_str = match doc.conv(STRING) {
+            Ok(value_str) => match value_str.cast_string() {
+                Ok(value_casted) => value_casted,
+                Err(err) => bail!("{}", err),
+            },
+            Err(err) => bail!("{}", err),
+        };
+        match self.vecstore {
+            Some(ref mut vecstore) => match vecstore.add_string(&doc.id, &value_str, &embedder) {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("Error adding value: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        }
+    }
     pub fn query(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
         let embedder = match &self.embed_model {
             Some(embed_model) => embed_model,
