@@ -135,6 +135,33 @@ impl DeepThought {
             None => bail!("Vector store not set"),
         }
     }
+    pub fn add_document_with_sync(&mut self, doc: &str) -> Result<(), easy_error::Error> {
+        match self.add_document(doc) {
+            Ok(_) => match self.sync() {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("{}", err),
+            },
+            Err(err) => bail!("{}", err),
+        }
+    }
+    pub fn add_string_with_sync(&mut self, doc: &str) -> Result<(), easy_error::Error> {
+        match self.add_string(doc) {
+            Ok(_) => match self.sync() {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("{}", err),
+            },
+            Err(err) => bail!("{}", err),
+        }
+    }
+    pub fn add_value_with_sync(&mut self, doc: Value) -> Result<(), easy_error::Error> {
+        match self.add_value(doc) {
+            Ok(_) => match self.sync() {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("{}", err),
+            },
+            Err(err) => bail!("{}", err),
+        }
+    }
     pub fn query(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
         let embedder = match &self.embed_model {
             Some(embed_model) => embed_model,
