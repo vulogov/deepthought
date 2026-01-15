@@ -211,7 +211,26 @@ impl DeepThoughtVecStore {
         }
         Ok(res)
     }
-
+    pub fn get(&self, id: &str) -> Result<String, easy_error::Error> {
+        let conn = self.conn.clone();
+        let conn_read = match conn.read() {
+            Ok(conn_read) => conn_read,
+            Err(err) => {
+                bail!("Failed to acquire read lock: {:?}", err);
+            }
+        };
+        if ! conn_read.has_text(id) {
+            bail!("No text found for id: {}", id);
+        }
+        match conn_read.get_text(id) {
+            Some(text_str) => {
+                Ok(text_str.to_string())
+            }
+            None => {
+                bail!("Failed to get text from vector store for {}", id);
+            }
+        }
+    }
     pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {
         let conn = self.conn.clone();
         let mut conn_write = match conn.write() {
