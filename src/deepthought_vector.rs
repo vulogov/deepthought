@@ -138,7 +138,7 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
-    fn query_neighbors(
+    pub fn query_neighbors(
         &self,
         embedding: Vec<f32>,
         query: &str,
@@ -220,13 +220,11 @@ impl DeepThoughtVecStore {
                 bail!("Failed to acquire read lock: {:?}", err);
             }
         };
-        if ! conn_read.has_text(id) {
+        if !conn_read.has_text(id) {
             bail!("No text found for id: {}", id);
         }
         match conn_read.get_text(id) {
-            Some(text_str) => {
-                Ok(text_str.to_string())
-            }
+            Some(text_str) => Ok(text_str.to_string()),
             None => {
                 bail!("Failed to get text from vector store for {}", id);
             }

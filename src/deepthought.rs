@@ -193,7 +193,7 @@ impl DeepThought {
         let mut results: Vec<String> = match self.vecstore {
             Some(ref mut vecstore) => match vecstore.query(vector[0].clone(), q) {
                 Ok(results) => results,
-                Err(err) => bail!("Error adding document: {}", err),
+                Err(err) => bail!("Error querying: {}", err),
             },
             None => bail!("Vector store not set"),
         };
@@ -201,6 +201,35 @@ impl DeepThought {
             Ok(res) => results.push(res),
             Err(err) => bail!("Error chatting: {}", err),
         }
+        Ok(results)
+    }
+    pub fn query_templated(
+        &mut self,
+        q: &str,
+        template_name: &str,
+    ) -> Result<HashMap<String, Value>, easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        let query = format!("{} {}", self.embedding_query_prefix, q);
+        let vector = match embedder.embed(&[query]) {
+            Ok(vector) => vector,
+            Err(err) => bail!("Error embedding query: {:?}", err),
+        };
+        let mut results: HashMap<String, Value> = match self.vecstore {
+            Some(ref mut vecstore) => {
+                match vecstore.query_templated(vector[0].clone(), template_name, q) {
+                    Ok(results) => results,
+                    Err(err) => bail!("Error querying: {}", err),
+                }
+            }
+            None => bail!("Vector store not set"),
+        };
+        let _ = match self.chat(q) {
+            Ok(res) => results.insert("chat".to_string(), Value::from_string(res)),
+            Err(err) => bail!("Error chatting: {}", err),
+        };
         Ok(results)
     }
     pub fn len(&self) -> usize {
