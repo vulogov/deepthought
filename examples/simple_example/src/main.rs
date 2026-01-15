@@ -1,5 +1,7 @@
 use deepthought::DeepThoughtBuilder;
 
+pub const QUERY: &str = "Who is Anna Karenina?";
+
 pub const DOCUMENT: &str = r#"
 Leo Tolstoy was born at Yasnaya Polyana, in Russia's Tula Province, the fourth of five children. The title of Count had been conferred on his ancestor in the early 18th century by Peter the Great. His parents died when he was a child, and he was brought up by relatives. In 1844 Tolstoy started his studies of law and oriental languages at Kazan University, but he never took a degree. Dissatisfied with the standard of education, he returned back to Yasnaya Polyana in the middle of his studies, and then spent much of his time in Moscow and St. Petersburg. In 1847 Tolstoy was treated for venereal disease. After contracting heavy gambling debts, Tolstoy accompanied his elder brother to the Caucasus in 1851, and joined an artillery regiment. In the 1850s Tolstoy also began his literary career, publishing the autobiographical trilogy Childhood (1852), Boyhood (1854), and Youth (1857).
 
@@ -36,7 +38,9 @@ fn main() {
     );
     dt.add_document(DOCUMENT).unwrap();
     dt.sync().unwrap();
-    let res = dt.query("Who is Anna Karenina?").unwrap();
+    let res = dt.query(QUERY).unwrap();
+    println!("Query is {}", &QUERY);
+    println!("==============");
     for doc in res.iter() {
         println!("{}", &doc);
         println!(">>>>>>>>>>>>>>>>");
