@@ -33,6 +33,7 @@ impl DeepThoughtVecStore {
             k: DEFAULT_K,
             alpha: DEFAULT_ALPHA,
             max_score: DEFAULT_MAX_SCORE,
+            templates: HashMap::new(),
         };
         Ok(vector)
     }

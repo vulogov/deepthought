@@ -1,5 +1,6 @@
 extern crate log;
 
+use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use llama_cpp_2::{
@@ -91,6 +92,7 @@ pub struct DeepThoughtVecStore {
     alpha: f32,
     max_score: f32,
     embedding_prefix: String,
+    templates: HashMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

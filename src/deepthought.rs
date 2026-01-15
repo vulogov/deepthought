@@ -212,6 +212,19 @@ impl DeepThought {
             None => 0,
         }
     }
+    pub fn register_template(
+        &mut self,
+        name: &str,
+        template: &str,
+    ) -> Result<(), easy_error::Error> {
+        match self.vecstore {
+            Some(ref mut vecstore) => match vecstore.register_template(name, template) {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("Error registering template: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        }
+    }
     pub fn sync(&mut self) -> Result<(), easy_error::Error> {
         match &self.vecstore {
             Some(vecstore) => vecstore.save_vectorstore(),
