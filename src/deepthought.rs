@@ -203,6 +203,12 @@ impl DeepThought {
         }
         Ok(results)
     }
+    pub fn len(&self) -> usize {
+        match &self.vecstore {
+            Some(vecstore) => vecstore.count(),
+            None => 0,
+        }
+    }
     pub fn sync(&mut self) -> Result<(), easy_error::Error> {
         match &self.vecstore {
             Some(vecstore) => vecstore.save_vectorstore(),
