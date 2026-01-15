@@ -89,6 +89,42 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
+    pub fn add_string(
+        &mut self,
+        id: &str,
+        text: &str,
+        embedder: &DeepThoughtModel,
+    ) -> Result<Duration, easy_error::Error> {
+        let timer = Timer::new();
+        let vectors = self.conn.clone();
+        let mut conn = match vectors.write() {
+            Ok(conn) => conn,
+            Err(err) => bail!("Failed to acquire write lock: {}", err),
+        };
+        let vector = match embedder.embed(&[format!("{} {}", self.embedding_prefix, text)]) {
+            Ok(vector) => vector[0].clone(),
+            Err(err) => bail!("Failed to embed text: {:?}", err),
+        };
+        let mut meta = Metadata {
+            fields: HashMap::new(),
+        };
+        meta.fields.insert("id".into(), serde_json::json!(id));
+        meta.fields.insert("n".into(), serde_json::json!(0));
+        meta.fields.insert("text".into(), serde_json::json!(text));
+        match conn.upsert(id.into(), vector.to_vec(), meta) {
+            Ok(_) => {}
+            Err(err) => bail!("Failed to add string: {}", err),
+        };
+        match conn.index_text(id.into(), text) {
+            Ok(_) => {}
+            Err(err) => bail!("Failed to index string: {}", err),
+        };
+        drop(conn);
+        drop(vectors);
+        let t = timer.took();
+        let duration = t.as_std();
+        Ok(*duration)
+    }
     fn query_neighbors(
         &self,
         embedding: Vec<f32>,
