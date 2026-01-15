@@ -47,6 +47,18 @@ impl DeepThoughtVecStore {
         };
         chunks
     }
+    pub fn delete_record(&mut self, id: &str) -> Result<(), easy_error::Error> {
+        let vectors = self.conn.clone();
+        let mut conn = match vectors.write() {
+            Ok(conn) => conn,
+            Err(err) => bail!("Failed to acquire write lock: {}", err),
+        };
+        match conn.soft_delete(id) {
+            Ok(_) => Ok(()),
+            Err(err) => bail!("Failed to delete record: {}", err),
+        }
+    }
+
     pub fn add_document(
         &mut self,
         id: &str,
@@ -190,12 +202,24 @@ impl DeepThoughtVecStore {
 
     pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {
         let conn = self.conn.clone();
-        let conn_write = match conn.write() {
+        let mut conn_write = match conn.write() {
             Ok(conn_write) => conn_write,
             Err(err) => {
                 bail!("Failed to acquire write lock: {:?}", err);
             }
         };
+        match conn_write.optimize() {
+            Ok(_) => {}
+            Err(err) => {
+                bail!("Failed to optimize vector store: {:?}", err);
+            }
+        }
+        match conn_write.maybe_compact() {
+            Ok(_) => {}
+            Err(err) => {
+                bail!("Failed to compact vector store: {:?}", err);
+            }
+        }
         match conn_write.save() {
             Ok(_) => {}
             Err(err) => {

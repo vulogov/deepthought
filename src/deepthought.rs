@@ -135,6 +135,24 @@ impl DeepThought {
             None => bail!("Vector store not set"),
         }
     }
+    pub fn delete_value(&mut self, doc: Value) -> Result<(), easy_error::Error> {
+        match self.vecstore {
+            Some(ref mut vecstore) => match vecstore.delete_record(&doc.id) {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("Error deleting value: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        }
+    }
+    pub fn delete_record(&mut self, id: &str) -> Result<(), easy_error::Error> {
+        match self.vecstore {
+            Some(ref mut vecstore) => match vecstore.delete_record(id) {
+                Ok(_) => Ok(()),
+                Err(err) => bail!("Error deleting record: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        }
+    }
     pub fn add_document_with_sync(&mut self, doc: &str) -> Result<(), easy_error::Error> {
         match self.add_document(doc) {
             Ok(_) => match self.sync() {
