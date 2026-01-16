@@ -6,7 +6,7 @@ description = "Functional wrapper around Llama.cpp with Rust Dynamic datatypes a
 license-file = "LICENSE"
 repository = "https://github.com/vulogov/deepthought"
 categories = ["development-tools"]
-keywords = ["ai", "llama", "llama-cpp", "vecstore", "vector", "rag", "embedding"]
+keywords = ["llama-cpp", "vecstore", "vector", "rag", "embedding"]
 
 [dependencies]
 easy-error = "1.*.*"
