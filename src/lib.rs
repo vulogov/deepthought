@@ -21,6 +21,8 @@ pub mod deepthought_builder;
 pub mod deepthought_context;
 pub mod deepthought_ctx_model;
 pub mod deepthought_model;
+pub mod deepthought_router;
+pub mod deepthought_router_sessions;
 pub mod deepthought_vector;
 pub mod deepthought_vector_output;
 
@@ -66,6 +68,12 @@ pub struct DeepThought {
     pub embedding_doc_prefix: String,
     pub embedding_query_prefix: String,
     pub vecstore: Option<DeepThoughtVecStore>,
+}
+
+pub struct DeepThoughtRouter {
+    pub sessions: HashMap<String, DeepThoughtContext>,
+    pub backend: DeepThoughtBackend,
+    pub routes: HashMap<String, DeepThought>,
 }
 
 pub struct DeepThoughtBuilder {
