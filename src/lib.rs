@@ -23,6 +23,7 @@ pub mod deepthought_ctx_model;
 pub mod deepthought_model;
 pub mod deepthought_router;
 pub mod deepthought_router_builder;
+pub mod deepthought_router_prompt;
 pub mod deepthought_router_sessions;
 pub mod deepthought_vector;
 pub mod deepthought_vector_output;
@@ -82,6 +83,7 @@ pub struct DeepThoughtRouter {
 pub struct DeepThoughtRouterBuilder {
     system_prompt: String,
     prompt_model: Option<String>,
+    embedding_query_prefix: Option<String>,
     default_embed_model: Option<String>,
 }
 

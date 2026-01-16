@@ -12,6 +12,7 @@ impl DeepThoughtRouterBuilder {
             system_prompt: DEFAULT_SYSTEM_PROMPT.to_string(),
             prompt_model: None,
             default_embed_model: None,
+            embedding_query_prefix: None,
         }
     }
 
@@ -20,8 +21,18 @@ impl DeepThoughtRouterBuilder {
         self
     }
 
+    pub fn prompt_model(mut self, prompt_model: &str) -> Self {
+        self.prompt_model = Some(prompt_model.to_string());
+        self
+    }
+
     pub fn default_embed_model(mut self, default_embed_model: &str) -> Self {
         self.default_embed_model = Some(default_embed_model.to_string());
+        self
+    }
+
+    pub fn embedding_query_prefix(mut self, embedding_query_prefix: &str) -> Self {
+        self.embedding_query_prefix = Some(embedding_query_prefix.to_string());
         self
     }
 
