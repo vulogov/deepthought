@@ -1,5 +1,15 @@
 use deepthought::DeepThoughtBuilder;
 
+pub const TEMPLATE: &str = r#"
+This is template
+----------------
+Document ID {{ id }}
+Document score: {{ score }}
+
+{{ text }}
+
+"#;
+
 pub const QUERY: &str = "Who is Anna Karenina?";
 
 pub const DOCUMENT: &str = r#"
@@ -32,17 +42,16 @@ fn main() {
         .embedding_query_prefix("search_query".to_string())
         .build()
         .unwrap();
-    println!(
-        "Embedding size = {}",
-        dt.embed("Hello world").unwrap()[0].len()
-    );
     dt.add_document(DOCUMENT).unwrap();
+    let _ = dt.register_template("default", TEMPLATE);
     dt.sync().unwrap();
-    let res = dt.query(QUERY).unwrap();
-    println!("Query is {}", &QUERY);
+    let res = dt.query_templated(QUERY, "default").unwrap();
+    println!("Query is {}", &res.get("query").unwrap());
     println!("==============");
-    for doc in res.iter() {
-        println!("{}", &doc);
-        println!(">>>>>>>>>>>>>>>>");
+    let rag_data = res.get("rag").unwrap().cast_list().unwrap();
+    for doc in rag_data.iter() {
+        println!("{}", doc.cast_string().unwrap());
+        println!(">>>>>>>>>>")
     }
+    println!("{}", res.get("chat").unwrap().cast_string().unwrap());
 }
