@@ -1,6 +1,6 @@
 [package]
 name = "deepthought"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2024"
 description = "Functional wrapper around Llama.cpp with Rust Dynamic datatypes and Vector store support for creating RAG applications"
 license-file = "LICENSE"
