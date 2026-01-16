@@ -48,7 +48,10 @@ Rough prompt:
 "#;
 
 impl DeepThoughtRouter {
-    pub fn refine_prompt(&mut self, prompt: &str) -> Result<(), easy_error::Error> {
+    pub fn refine_prompt(
+        &mut self,
+        prompt: &str,
+    ) -> Result<DeepThoughtRecommededPrompt, easy_error::Error> {
         match self.prompt_model {
             Some(ref mut prompt_model) => {
                 let mut ctx = match DeepThoughtContext::init(
@@ -70,10 +73,14 @@ impl DeepThoughtRouter {
                     Ok(result) => result,
                     Err(err) => bail!("{}", err),
                 };
-                println!("{}", result);
+                let recommended_prompt: DeepThoughtRecommededPrompt =
+                    match serde_json::from_str(&result) {
+                        Ok(recommended_prompt) => recommended_prompt,
+                        Err(err) => bail!("{}", err),
+                    };
+                return Ok(recommended_prompt);
             }
             None => bail!("Prompt model not configured. Prompt refining is impossible"),
         }
-        Ok(())
     }
 }

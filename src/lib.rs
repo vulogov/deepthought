@@ -1,5 +1,6 @@
 extern crate log;
 
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
@@ -113,6 +114,15 @@ pub struct DeepThoughtVecStore {
     max_score: f32,
     embedding_prefix: String,
     templates: HashMap<String, String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct DeepThoughtRecommededPrompt {
+    pub clarifying_questions: Vec<String>,
+    pub prompts: HashMap<String, String>,
+    pub rationale_bullets: Vec<String>,
+    pub suggested_parameters: HashMap<String, serde_json::Value>,
+    pub quick_tests: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
