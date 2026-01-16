@@ -1,9 +1,4 @@
-extern crate log;
-
-use easy_error::bail;
-use minijinja::context;
-
-use crate::*;
+use deepthought::DeepThoughtRouter;
 
 pub const DEFAULT_REFINE_PROMPT: &str = r#"
 You are “Prompt Refiner”. Your job is to transform rough prompts into precise, testable instructions for other models
@@ -47,33 +42,13 @@ Rough prompt:
 
 "#;
 
-impl DeepThoughtRouter {
-    pub fn refine_prompt(&mut self, prompt: &str) -> Result<(), easy_error::Error> {
-        match self.prompt_model {
-            Some(ref mut prompt_model) => {
-                let mut ctx = match DeepThoughtContext::init(
-                    "You are “Prompt Refiner”. Your job is to transform rough prompts into precise, testable instructions for other models.",
-                ) {
-                    Ok(ctx) => ctx,
-                    Err(err) => bail!("{}", err),
-                };
-                let true_prompt = match DeepThoughtRouter::template(
-                    DEFAULT_REFINE_PROMPT,
-                    context! {
-                        prompt => prompt,
-                    },
-                ) {
-                    Ok(true_prompt) => true_prompt,
-                    Err(err) => bail!("{}", err),
-                };
-                let result = match prompt_model.chat(&true_prompt, &mut ctx) {
-                    Ok(result) => result,
-                    Err(err) => bail!("{}", err),
-                };
-                println!("{}", result);
-            }
-            None => bail!("Prompt model not configured. Prompt refining is impossible"),
-        }
-        Ok(())
-    }
+fn main() {
+    println!(
+        "{}",
+        DeepThoughtRouter::template(
+            DEFAULT_REFINE_PROMPT,
+            minijinja::context!(prompt => "Generate a short story about a cat and a mouse.")
+        )
+        .unwrap()
+    );
 }

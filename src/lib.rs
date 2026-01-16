@@ -25,6 +25,7 @@ pub mod deepthought_router;
 pub mod deepthought_router_builder;
 pub mod deepthought_router_prompt;
 pub mod deepthought_router_sessions;
+pub mod deepthought_router_template;
 pub mod deepthought_vector;
 pub mod deepthought_vector_output;
 
