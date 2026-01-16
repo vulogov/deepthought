@@ -27,7 +27,7 @@ impl DeepThoughtVecStore {
         match env.add_template(name, raw_template) {
             Ok(_) => (),
             Err(err) => bail!("Error adding template: {}", err),
-        };
+        }
         let template = match env.get_template(name) {
             Ok(template) => template,
             Err(err) => bail!("Template not found: {}", err),
