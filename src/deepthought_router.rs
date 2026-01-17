@@ -18,6 +18,7 @@ impl DeepThoughtRouter {
             sessions: HashMap::new(),
             embed_model: None,
             prompt_model: None,
+            catalog: None,
             query_preference: "balanced".to_string(),
         })
     }

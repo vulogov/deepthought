@@ -23,4 +23,13 @@ impl DeepThoughtRouter {
     pub fn get_route(&mut self, name: &str) -> Option<&mut DeepThought> {
         self.routes.get_mut(name)
     }
+    pub fn list_routes(&mut self) -> Vec<String> {
+        self.routes.keys().cloned().collect()
+    }
+    pub fn drop_route(&mut self, name: &str) -> Result<(), easy_error::Error> {
+        match self.routes.remove(name) {
+            Some(_) => Ok(()),
+            None => bail!("Route not found"),
+        }
+    }
 }

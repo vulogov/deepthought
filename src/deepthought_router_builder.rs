@@ -14,6 +14,7 @@ impl DeepThoughtRouterBuilder {
             default_embed_model: None,
             embedding_query_prefix: None,
             query_preference: None,
+            catalog_path: None,
         }
     }
 
@@ -34,6 +35,11 @@ impl DeepThoughtRouterBuilder {
 
     pub fn embedding_query_prefix(mut self, embedding_query_prefix: &str) -> Self {
         self.embedding_query_prefix = Some(embedding_query_prefix.to_string());
+        self
+    }
+
+    pub fn catalog_path(mut self, catalog_path: &str) -> Self {
+        self.catalog_path = Some(catalog_path.to_string());
         self
     }
 
@@ -67,6 +73,15 @@ impl DeepThoughtRouterBuilder {
             Ok(router) => router,
             Err(err) => bail!("Failed to create router: {}", err),
         };
+        let catalog_path = match self.catalog_path {
+            Some(catalog_path) => catalog_path,
+            None => "./db".to_string(),
+        };
+        let catalog = match DeepThoughtVecStore::new(&catalog_path) {
+            Ok(catalog) => catalog,
+            Err(err) => bail!("Failed to create catalog: {}", err),
+        };
+        router.catalog = Some(catalog);
         router.prompt_model = match router
             .backend
             .load_context_model(&prompt_model, &self.system_prompt)
