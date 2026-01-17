@@ -33,4 +33,13 @@ impl DeepThoughtRouter {
             None => bail!("Session not found"),
         }
     }
+    pub fn drop_session(&mut self, name: &str) -> Result<(), easy_error::Error> {
+        match self.sessions.remove(name) {
+            Some(_) => Ok(()),
+            None => bail!("Session not found"),
+        }
+    }
+    pub fn list_sessions(&mut self) -> Vec<String> {
+        self.sessions.keys().cloned().collect()
+    }
 }
