@@ -24,6 +24,7 @@ pub mod deepthought_ctx_model;
 pub mod deepthought_model;
 pub mod deepthought_router;
 pub mod deepthought_router_builder;
+pub mod deepthought_router_catalog;
 pub mod deepthought_router_llm;
 pub mod deepthought_router_prompt;
 pub mod deepthought_router_route;

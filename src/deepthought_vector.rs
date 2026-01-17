@@ -138,6 +138,54 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
+    pub fn add_object(
+        &mut self,
+        id: &str,
+        obj: Value,
+        embedder: &DeepThoughtModel,
+    ) -> Result<Duration, easy_error::Error> {
+        let timer = Timer::new();
+        let vectors = self.conn.clone();
+        let mut conn = match vectors.write() {
+            Ok(conn) => conn,
+            Err(err) => bail!("Failed to acquire write lock: {}", err),
+        };
+        let doc_text: String = match obj.conv(STRING) {
+            Ok(text) => match text.cast_string() {
+                Ok(text) => text,
+                Err(err) => bail!("Failed to cast string: {:?}", err),
+            },
+            Err(err) => bail!("Failed to convert object to string: {:?}", err),
+        };
+        let vector = match embedder.embed(&[format!("{} {}", self.embedding_prefix, doc_text)]) {
+            Ok(vector) => vector[0].clone(),
+            Err(err) => bail!("Failed to embed text: {:?}", err),
+        };
+        let mut meta = Metadata {
+            fields: HashMap::new(),
+        };
+        meta.fields.insert("id".into(), serde_json::json!(obj.id));
+        meta.fields.insert("n".into(), serde_json::json!(0));
+        meta.fields
+            .insert("text".into(), serde_json::json!(doc_text));
+        for (key, value) in obj.tags {
+            meta.fields
+                .insert(format!("tag.{}", &key).into(), serde_json::json!(value));
+        }
+        match conn.upsert(id.into(), vector.to_vec(), meta) {
+            Ok(_) => {}
+            Err(err) => bail!("Failed to add string: {}", err),
+        };
+        match conn.index_text(id.into(), doc_text) {
+            Ok(_) => {}
+            Err(err) => bail!("Failed to index string: {}", err),
+        };
+        drop(conn);
+        drop(vectors);
+        let t = timer.took();
+        let duration = t.as_std();
+        Ok(*duration)
+    }
     pub fn query_neighbors(
         &self,
         embedding: Vec<f32>,

@@ -75,7 +75,7 @@ impl DeepThoughtRouterBuilder {
         };
         let catalog_path = match self.catalog_path {
             Some(catalog_path) => catalog_path,
-            None => "./db".to_string(),
+            None => "./catalog".to_string(),
         };
         let catalog = match DeepThoughtVecStore::new(&catalog_path) {
             Ok(catalog) => catalog,
