@@ -18,6 +18,7 @@ impl DeepThoughtRouter {
             sessions: HashMap::new(),
             embed_model: None,
             prompt_model: None,
+            query_preference: "balanced".to_string(),
         })
     }
     pub fn embed_model(&mut self, gguf_model: &str) -> Result<(), easy_error::Error> {

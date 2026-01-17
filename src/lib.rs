@@ -80,6 +80,7 @@ pub struct DeepThoughtRouter {
     pub prompt_model: Option<DeepThoughtCtxModel>,
     pub embed_model: Option<DeepThoughtModel>,
     pub routes: HashMap<String, DeepThought>,
+    query_preference: String,
 }
 
 pub struct DeepThoughtRouterBuilder {
@@ -87,6 +88,7 @@ pub struct DeepThoughtRouterBuilder {
     prompt_model: Option<String>,
     embedding_query_prefix: Option<String>,
     default_embed_model: Option<String>,
+    query_preference: Option<String>,
 }
 
 pub struct DeepThoughtBuilder {

@@ -13,6 +13,7 @@ impl DeepThoughtRouterBuilder {
             prompt_model: None,
             default_embed_model: None,
             embedding_query_prefix: None,
+            query_preference: None,
         }
     }
 
@@ -33,6 +34,21 @@ impl DeepThoughtRouterBuilder {
 
     pub fn embedding_query_prefix(mut self, embedding_query_prefix: &str) -> Self {
         self.embedding_query_prefix = Some(embedding_query_prefix.to_string());
+        self
+    }
+
+    pub fn balanced_preference(mut self) -> Self {
+        self.query_preference = Some("balanced".to_string());
+        self
+    }
+
+    pub fn deterministic_preference(mut self) -> Self {
+        self.query_preference = Some("deterministic".to_string());
+        self
+    }
+
+    pub fn creative_preference(mut self) -> Self {
+        self.query_preference = Some("creative".to_string());
         self
     }
 
@@ -61,6 +77,10 @@ impl DeepThoughtRouterBuilder {
         match router.embed_model(&default_embed_model) {
             Ok(model) => Some(model),
             Err(err) => bail!("Failed to load default embed model: {}", err),
+        };
+        router.query_preference = match self.query_preference {
+            Some(preference) => preference,
+            None => "balanced".to_string(),
         };
         Ok(router)
     }
