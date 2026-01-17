@@ -25,6 +25,7 @@ pub mod deepthought_model;
 pub mod deepthought_router;
 pub mod deepthought_router_builder;
 pub mod deepthought_router_prompt;
+pub mod deepthought_router_route;
 pub mod deepthought_router_sessions;
 pub mod deepthought_router_template;
 pub mod deepthought_vector;
@@ -83,6 +84,7 @@ pub struct DeepThoughtRouter {
     query_preference: String,
 }
 
+#[derive(Clone)]
 pub struct DeepThoughtRouterBuilder {
     system_prompt: String,
     prompt_model: Option<String>,
