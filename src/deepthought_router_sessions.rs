@@ -4,9 +4,11 @@ use easy_error::bail;
 
 use crate::*;
 
+const DEFAULT_SYSTEM_PROMPT: &str = r#"You are a helpful assistant."#;
+
 impl DeepThoughtRouter {
     pub fn new_session(&mut self, name: &str) -> Result<(), easy_error::Error> {
-        let new_context = match DeepThoughtContext::new() {
+        let new_context = match DeepThoughtContext::init(DEFAULT_SYSTEM_PROMPT) {
             Ok(context) => context,
             Err(err) => {
                 bail!("CONTEXT ERROR: {:?}", err);
