@@ -8,7 +8,14 @@ const DEFAULT_SYSTEM_PROMPT: &str = r#"You are a helpful assistant."#;
 
 impl DeepThoughtRouter {
     pub fn new_session(&mut self, name: &str) -> Result<(), easy_error::Error> {
-        let new_context = match DeepThoughtContext::init(DEFAULT_SYSTEM_PROMPT) {
+        self.new_session_with_prompt(name, DEFAULT_SYSTEM_PROMPT)
+    }
+    pub fn new_session_with_prompt(
+        &mut self,
+        name: &str,
+        prompt: &str,
+    ) -> Result<(), easy_error::Error> {
+        let new_context = match DeepThoughtContext::init(prompt) {
             Ok(context) => context,
             Err(err) => {
                 bail!("CONTEXT ERROR: {:?}", err);
