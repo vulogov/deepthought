@@ -80,12 +80,12 @@ pub struct DeepThought {
 }
 
 pub struct DeepThoughtRouter {
-    pub sessions: HashMap<String, DeepThoughtContext>,
-    pub backend: DeepThoughtBackend,
-    pub prompt_model: Option<DeepThoughtCtxModel>,
-    pub embed_model: Option<DeepThoughtModel>,
-    pub routes: HashMap<String, DeepThought>,
-    pub catalog: Option<DeepThoughtVecStore>,
+    sessions: HashMap<String, DeepThoughtContext>,
+    backend: DeepThoughtBackend,
+    prompt_model: Option<DeepThoughtCtxModel>,
+    embed_model: Option<DeepThoughtModel>,
+    routes: HashMap<String, DeepThought>,
+    catalog: Option<DeepThoughtVecStore>,
     query_preference: String,
 }
 
