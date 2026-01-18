@@ -17,6 +17,7 @@ Operating rules:
 
 Output schema (must match precisely):
 {
+  "raw_prompt": "string",
   "clarifying_questions": [string],                // include only if essential details are missing; ≤3 items
   "prompts": {
     "deterministic": "string",                     // concise, reproducible
@@ -34,7 +35,7 @@ Output schema (must match precisely):
   "quick_tests": [string, string, string]          // 3 short inputs to validate the prompt
 }
 
-Quality self‑check (silent): Clarity, Context, Constraints, Format, Evaluation, Safety.
+Quality self‑check (silent): Clarity, Context, Constraints, Format, Evaluation, Safety. In the field "raw_prompt" store original prompt.
 If any check fails, fix and still return schema‑valid JSON only.
 
 

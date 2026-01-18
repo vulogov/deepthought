@@ -22,6 +22,7 @@ pub mod deepthought_builder;
 pub mod deepthought_context;
 pub mod deepthought_ctx_model;
 pub mod deepthought_model;
+pub mod deepthought_prompt;
 pub mod deepthought_router;
 pub mod deepthought_router_builder;
 pub mod deepthought_router_catalog;
@@ -126,6 +127,7 @@ pub struct DeepThoughtVecStore {
 
 #[derive(Deserialize, Debug)]
 pub struct DeepThoughtRecommededPrompt {
+    pub raw_prompt: String,
     pub clarifying_questions: Vec<String>,
     pub prompts: HashMap<String, String>,
     pub rationale_bullets: Vec<String>,
