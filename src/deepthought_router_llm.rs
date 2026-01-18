@@ -5,7 +5,15 @@ extern crate log;
 use crate::*;
 
 impl DeepThoughtRouter {
-    // pub fn chat(
+    pub fn query_preference(&self) -> &str {
+        self.query_preference.as_str()
+    }
+
+    pub fn set_query_preference(&mut self, preference: String) {
+        self.query_preference = preference;
+    }
+
+    // pub fn chat (
     //     &mut self,
     //     router: &str,
     //     session: &str,
