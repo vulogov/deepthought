@@ -137,6 +137,12 @@ pub struct DeepThoughtRecommededPrompt {
     pub quick_tests: Vec<String>,
 }
 
+pub struct VecStoreNeighbors {
+    pub id: String,
+    pub score: f32,
+    pub metadata: HashMap<String, serde_json::Value>,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {
     TextTooLong(&'static str),

@@ -1,6 +1,7 @@
 extern crate log;
 
 use easy_error::bail;
+use vecstore::Neighbor;
 
 use crate::*;
 
@@ -47,7 +48,7 @@ impl DeepThoughtRouter {
             None => bail!("Vector store not set"),
         }
     }
-    pub fn query_catalog(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
+    pub fn query_catalog(&mut self, q: &str) -> Result<Vec<VecStoreNeighbors>, easy_error::Error> {
         let embedder = match &self.embed_model {
             Some(embed_model) => embed_model,
             None => bail!("Embedding model not set"),
@@ -57,13 +58,24 @@ impl DeepThoughtRouter {
             Ok(vector) => vector,
             Err(err) => bail!("Error embedding query: {:?}", err),
         };
-        let results: Vec<String> = match self.catalog {
-            Some(ref mut catalog) => match catalog.query(vector[0].clone(), q) {
+        let n_results: Vec<Neighbor> = match self.catalog {
+            Some(ref mut catalog) => match catalog.query_neighbors(vector[0].clone(), q) {
                 Ok(results) => results,
                 Err(err) => bail!("Error querying: {}", err),
             },
             None => bail!("Vector store not set"),
         };
-        Ok(results)
+        let mut result: Vec<VecStoreNeighbors> = Vec::new();
+        for neighbor in n_results {
+            let metadata = neighbor.metadata.fields.clone();
+            let score = neighbor.score;
+            let id = neighbor.id.clone();
+            result.push(VecStoreNeighbors {
+                id,
+                score,
+                metadata,
+            });
+        }
+        Ok(result)
     }
 }
