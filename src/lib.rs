@@ -87,6 +87,7 @@ pub struct DeepThoughtRouter {
     routes: HashMap<String, DeepThought>,
     catalog: Option<DeepThoughtVecStore>,
     query_preference: String,
+    embedding_query_prefix: String,
 }
 
 #[derive(Clone)]
@@ -94,7 +95,7 @@ pub struct DeepThoughtRouterBuilder {
     system_prompt: String,
     prompt_model: Option<String>,
     catalog_path: Option<String>,
-    embedding_query_prefix: Option<String>,
+    embedding_query_prefix: String,
     default_embed_model: Option<String>,
     query_preference: Option<String>,
 }

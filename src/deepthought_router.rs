@@ -20,6 +20,7 @@ impl DeepThoughtRouter {
             prompt_model: None,
             catalog: None,
             query_preference: "balanced".to_string(),
+            embedding_query_prefix: "".to_string(),
         })
     }
     pub fn embed_model(&mut self, gguf_model: &str) -> Result<(), easy_error::Error> {

@@ -12,9 +12,9 @@ impl DeepThoughtRouterBuilder {
             system_prompt: DEFAULT_SYSTEM_PROMPT.to_string(),
             prompt_model: None,
             default_embed_model: None,
-            embedding_query_prefix: None,
             query_preference: None,
             catalog_path: None,
+            embedding_query_prefix: "".to_string(),
         }
     }
 
@@ -33,13 +33,13 @@ impl DeepThoughtRouterBuilder {
         self
     }
 
-    pub fn embedding_query_prefix(mut self, embedding_query_prefix: &str) -> Self {
-        self.embedding_query_prefix = Some(embedding_query_prefix.to_string());
+    pub fn catalog_path(mut self, catalog_path: &str) -> Self {
+        self.catalog_path = Some(catalog_path.to_string());
         self
     }
 
-    pub fn catalog_path(mut self, catalog_path: &str) -> Self {
-        self.catalog_path = Some(catalog_path.to_string());
+    pub fn embedding_query_prefix(mut self, embedding_query_prefix: &str) -> Self {
+        self.embedding_query_prefix = embedding_query_prefix.to_string();
         self
     }
 
@@ -68,7 +68,6 @@ impl DeepThoughtRouterBuilder {
             Some(default_embed_model) => default_embed_model,
             None => bail!("Default embed model not set"),
         };
-
         let mut router = match DeepThoughtRouter::new() {
             Ok(router) => router,
             Err(err) => bail!("Failed to create router: {}", err),
@@ -81,6 +80,7 @@ impl DeepThoughtRouterBuilder {
             Ok(catalog) => catalog,
             Err(err) => bail!("Failed to create catalog: {}", err),
         };
+        router.embedding_query_prefix = self.embedding_query_prefix;
         router.catalog = Some(catalog);
         router.prompt_model = match router
             .backend

@@ -47,4 +47,23 @@ impl DeepThoughtRouter {
             None => bail!("Vector store not set"),
         }
     }
+    pub fn query_catalog(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        let query = format!("{} {}", self.embedding_query_prefix, q);
+        let vector = match embedder.embed(&[query]) {
+            Ok(vector) => vector,
+            Err(err) => bail!("Error embedding query: {:?}", err),
+        };
+        let results: Vec<String> = match self.catalog {
+            Some(ref mut catalog) => match catalog.query(vector[0].clone(), q) {
+                Ok(results) => results,
+                Err(err) => bail!("Error querying: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        };
+        Ok(results)
+    }
 }
