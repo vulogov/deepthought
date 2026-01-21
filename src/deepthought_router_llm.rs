@@ -1,6 +1,6 @@
 extern crate log;
 
-// use easy_error::bail;
+use easy_error::bail;
 
 use crate::*;
 
@@ -13,23 +13,24 @@ impl DeepThoughtRouter {
         self.query_preference = preference;
     }
 
-    // pub fn chat (
-    //     &mut self,
-    //     router: &str,
-    //     session: &str,
-    //     query: &str,
-    // ) -> Result<(), easy_error::Error> {
-    //     let session_obj = match self.get_session(session) {
-    //         Some(session_obj) => session_obj,
-    //         None => bail!("Session not found"),
-    //     };
-    //     let router_obj = match self.get_router(router) {
-    //         Some(router_obj) => router_obj,
-    //         None => bail!("Router not found"),
-    //     };
-    //     let refined_prompt = match self.refine_prompt(query) {
-    //         Ok(prompt) => prompt,
-    //         Err(err) => bail!("Failed to refine prompt: {}", err),
-    //     };
-    // }
+    pub fn query(
+        &mut self,
+        route_name: &str,
+        query: &str,
+        template_name: &str,
+    ) -> Result<HashMap<String, Value>, easy_error::Error> {
+	let actual_prompt = match self.recommended_prompt(&query) {
+            Ok(actual_prompt) => actual_prompt,
+            Err(err) => bail!("{}", err),
+        };
+        let router_obj = match self.get_route(route_name) {
+            Some(router_obj) => router_obj,
+            None => bail!("Router {} not found", &route_name),
+        };
+        let res = match router_obj.query_templated(&actual_prompt, template_name) {
+            Ok(res) => res,
+            Err(err) => bail!("{}", err),
+        };
+        Ok(res)
+    }
 }
