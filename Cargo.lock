@@ -222,6 +222,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-link",
 ]
@@ -415,6 +416,7 @@ dependencies = [
  "log",
  "minijinja",
  "nanoid",
+ "rust-rule-engine",
  "rust_dynamic",
  "serde",
  "serde_json",
@@ -1591,6 +1593,23 @@ name = "regex-syntax"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
+
+[[package]]
+name = "rust-rule-engine"
+version = "1.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb4d36141f86940c9661a96af8f388cb2dd33936c0d6b9fa888143bd17f158fb"
+dependencies = [
+ "aho-corasick",
+ "chrono",
+ "log",
+ "memchr",
+ "nom",
+ "rayon",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+]
 
 [[package]]
 name = "rust_dynamic"
