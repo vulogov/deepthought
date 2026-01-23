@@ -1,6 +1,6 @@
 extern crate log;
 
-use rust_rule_engine::{Facts, KnowledgeBase};
+use rust_rule_engine::{Facts, KnowledgeBase, Rule};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -30,6 +30,7 @@ pub mod deepthought_router_catalog;
 pub mod deepthought_router_chat;
 pub mod deepthought_router_expert;
 pub mod deepthought_router_expert_facts;
+pub mod deepthought_router_expert_rules;
 pub mod deepthought_router_llm;
 pub mod deepthought_router_prompt;
 pub mod deepthought_router_route;
@@ -94,6 +95,7 @@ pub struct DeepThoughtRouter {
     embedding_query_prefix: String,
     knowledge_base: Arc<KnowledgeBase>,
     facts: HashMap<String, Facts>,
+    rules: HashMap<String, Vec<Rule>>,
 }
 
 #[derive(Clone)]

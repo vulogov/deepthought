@@ -25,6 +25,7 @@ impl DeepThoughtRouter {
             query_preference: "balanced".to_string(),
             embedding_query_prefix: "".to_string(),
             knowledge_base: Arc::new(KnowledgeBase::new(&nanoid::nanoid!())),
+            rules: HashMap::new(),
         })
     }
     pub fn embed_model(&mut self, gguf_model: &str) -> Result<(), easy_error::Error> {
