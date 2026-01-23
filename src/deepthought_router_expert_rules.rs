@@ -14,4 +14,10 @@ impl DeepThoughtRouter {
         self.rules.insert(name.to_string(), rules);
         Ok(())
     }
+    pub fn get_rules(&mut self, name: &str) -> Result<Vec<Rule>, easy_error::Error> {
+        match self.rules.get(name) {
+            Some(rules) => Ok(rules.clone()),
+            None => bail!("No rules found for {}", name),
+        }
+    }
 }
