@@ -4,6 +4,7 @@ use crate::*;
 
 use std::num::{NonZero, NonZeroU32};
 
+// use easy_error::bail;
 use std::io::Write;
 
 use llama_cpp_2::{
@@ -23,6 +24,14 @@ impl DeepThoughtModel {
         self.messages.push(LlamaChatMessage::new(
             "system".to_string(),
             system_prompt.to_string(),
+        )?);
+        Ok(())
+    }
+
+    pub fn add_inference_to_prompt(&mut self, data: &str) -> Result<(), Error> {
+        self.messages.push(LlamaChatMessage::new(
+            "assistant".to_string(),
+            data.to_string(),
         )?);
         Ok(())
     }
