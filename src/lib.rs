@@ -85,6 +85,7 @@ pub struct DeepThoughtRouter {
     prompt_model: Option<DeepThoughtCtxModel>,
     embed_model: Option<DeepThoughtModel>,
     routes: HashMap<String, DeepThought>,
+    ctx_routes: HashMap<String, DeepThoughtCtxModel>,
     catalog: Option<DeepThoughtVecStore>,
     query_preference: String,
     embedding_query_prefix: String,

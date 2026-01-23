@@ -15,6 +15,7 @@ impl DeepThoughtRouter {
         Ok(DeepThoughtRouter {
             backend: backend,
             routes: HashMap::new(),
+            ctx_routes: HashMap::new(),
             sessions: HashMap::new(),
             embed_model: None,
             prompt_model: None,
