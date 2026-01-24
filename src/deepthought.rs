@@ -180,6 +180,12 @@ impl DeepThought {
             Err(err) => bail!("{}", err),
         }
     }
+    pub fn add_inference_to_prompt(&mut self, q: &str) -> Result<(), easy_error::Error> {
+        match self.model.add_inference_to_prompt(q) {
+            Ok(res) => Ok(res),
+            Err(err) => bail!("Error adding inference to prompt: {:?}", err),
+        }
+    }
     pub fn query(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
         let embedder = match &self.embed_model {
             Some(embed_model) => embed_model,
@@ -201,6 +207,50 @@ impl DeepThought {
             Ok(res) => results.push(res),
             Err(err) => bail!("Error chatting: {}", err),
         }
+        Ok(results)
+    }
+    pub fn query_vecstore(&mut self, q: &str) -> Result<Vec<String>, easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        let query = format!("{} {}", self.embedding_query_prefix, q);
+        let vector = match embedder.embed(&[query]) {
+            Ok(vector) => vector,
+            Err(err) => bail!("Error embedding query: {:?}", err),
+        };
+        let results = match self.vecstore {
+            Some(ref mut vecstore) => match vecstore.query(vector[0].clone(), q) {
+                Ok(results) => results,
+                Err(err) => bail!("Error querying: {}", err),
+            },
+            None => bail!("Vector store not set"),
+        };
+        Ok(results)
+    }
+    pub fn query_vecstore_templated(
+        &mut self,
+        q: &str,
+        template_name: &str,
+    ) -> Result<HashMap<String, Value>, easy_error::Error> {
+        let embedder = match &self.embed_model {
+            Some(embed_model) => embed_model,
+            None => bail!("Embedding model not set"),
+        };
+        let query = format!("{} {}", self.embedding_query_prefix, q);
+        let vector = match embedder.embed(&[query]) {
+            Ok(vector) => vector,
+            Err(err) => bail!("Error embedding query: {:?}", err),
+        };
+        let results = match self.vecstore {
+            Some(ref mut vecstore) => {
+                match vecstore.query_templated(vector[0].clone(), template_name, q) {
+                    Ok(results) => results,
+                    Err(err) => bail!("Error querying: {}", err),
+                }
+            }
+            None => bail!("Vector store not set"),
+        };
         Ok(results)
     }
     pub fn query_templated(

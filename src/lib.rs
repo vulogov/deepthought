@@ -33,6 +33,7 @@ pub mod deepthought_router_expert_facts;
 pub mod deepthought_router_expert_rules;
 pub mod deepthought_router_llm;
 pub mod deepthought_router_prompt;
+pub mod deepthought_router_rag;
 pub mod deepthought_router_route;
 pub mod deepthought_router_sessions;
 pub mod deepthought_router_template;
