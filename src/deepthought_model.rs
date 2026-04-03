@@ -10,7 +10,7 @@ use std::io::Write;
 use llama_cpp_2::{
     context::params::LlamaContextParams,
     llama_batch::LlamaBatch,
-    model::{AddBos, LlamaChatMessage, LlamaChatTemplate, Special},
+    model::{AddBos, LlamaChatMessage, LlamaChatTemplate},
     sampling::LlamaSampler,
 };
 
@@ -140,7 +140,7 @@ impl DeepThoughtModel {
                 break;
             }
 
-            let output_bytes = self.model.token_to_bytes(token, Special::Tokenize)?;
+            let output_bytes = self.model.token_to_piece_bytes(token, 32, false, None)?;
             output.write_all(&output_bytes)?;
             output.flush()?;
 

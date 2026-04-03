@@ -38,8 +38,8 @@ mod tests {
     #[test]
     fn test_load_model_and_embed() {
         let dtb = DeepThoughtBackend::new().unwrap();
-        let mut dtm = dtb
-            .load_model("nomic-embed-text-v1.Q5_K_M.gguf", "You are robot!")
+        let dtm = dtb
+            .load_model("nomic-embed-text-v1.5-q5_k_m.gguf", "You are robot!")
             .unwrap();
         let emb = dtm.embed(&["Hello world!"]).unwrap();
         assert_eq!(emb[0].len(), 768);
