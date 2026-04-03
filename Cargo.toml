@@ -12,7 +12,7 @@ keywords = ["llama-cpp", "vecstore", "vector", "rag", "embedding"]
 easy-error = "1.*.*"
 grainfs = "0.1.*"
 lazy_static = "1.5.*"
-llama-cpp-2 = { version = "0.1.*", features = ["sampler"] }
+llama-cpp-2 = { version = "0.1.141", features = ["sampler"] }
 log = "0.4.*"
 rust_dynamic = "0.*.*"
 took = "0.1.*"
