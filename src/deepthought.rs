@@ -100,6 +100,16 @@ impl DeepThought {
             None => bail!("Vector store not set"),
         }
     }
+    pub fn save_store(&mut self) -> Result<(), easy_error::Error> {
+        match &self.vecstore {
+            Some(vecstore) => match vecstore.save_vectorstore() {
+                Ok(_) => {}
+                Err(err) => bail!("{}", err),
+            },
+            None => {}
+        };
+        return Ok(());
+    }
     pub fn add_string(&mut self, doc: &str) -> Result<(), easy_error::Error> {
         let embedder = match &self.embed_model {
             Some(embed_model) => embed_model,
