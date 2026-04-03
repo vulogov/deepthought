@@ -251,3 +251,7 @@ impl From<String> for Error {
         Self::InternalNativeError(value.to_string())
     }
 }
+
+pub fn version() -> String {
+    env!("CARGO_PKG_VERSION").to_string().clone()
+}
