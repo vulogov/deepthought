@@ -1,6 +1,6 @@
 extern crate log;
 
-use easy_error::bail;
+use easy_error::{Error, bail};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -17,8 +17,52 @@ pub const DEFAULT_K: usize = 10;
 pub const DEFAULT_ALPHA: f32 = 0.7;
 pub const DEFAULT_MAX_SCORE: f32 = 0.3;
 
+// ============================================
+// External Embedding Provider Trait
+// ============================================
+
+/// Trait for external embedding generation
+pub trait EmbeddingProvider {
+    fn generate_embedding(&self, text: &str, prefix: &str) -> Result<Vec<f32>, Error>;
+    fn generate_batch_embeddings(
+        &self,
+        texts: &[String],
+        prefix: &str,
+    ) -> Result<Vec<Vec<f32>>, Error>;
+}
+
+/// Implementation for DeepThoughtModel
+impl EmbeddingProvider for DeepThoughtModel {
+    fn generate_embedding(&self, text: &str, prefix: &str) -> Result<Vec<f32>, Error> {
+        let prefixed_text = format!("{} {}", prefix, text);
+        match self.embed(&[prefixed_text]) {
+            Ok(vector) => Ok(vector[0].clone()),
+            Err(e) => bail!("Failed to embed: {:?}", e),
+        }
+    }
+
+    fn generate_batch_embeddings(
+        &self,
+        texts: &[String],
+        prefix: &str,
+    ) -> Result<Vec<Vec<f32>>, Error> {
+        let prefixed_texts: Vec<String> = texts
+            .iter()
+            .map(|text| format!("{} {}", prefix, text))
+            .collect();
+        match self.embed(&prefixed_texts) {
+            Ok(vectors) => Ok(vectors),
+            Err(e) => bail!("Failed to batch embed: {:?}", e),
+        }
+    }
+}
+
+// ============================================
+// DeepThoughtVecStore Implementation
+// ============================================
+
 impl DeepThoughtVecStore {
-    pub fn new(path: &str) -> Result<Self, easy_error::Error> {
+    pub fn new(path: &str) -> Result<Self, Error> {
         let conn = match VecStore::open(path) {
             Ok(conn) => conn,
             Err(err) => bail!("Failed to open vector store: {}", err),
@@ -37,6 +81,7 @@ impl DeepThoughtVecStore {
         };
         Ok(vector)
     }
+
     pub fn split_text(&self, text: &str) -> Vec<String> {
         let splitter = RecursiveCharacterTextSplitter::new(self.chunk_size, self.chunk_overlap);
         let chunks: Vec<String> = match splitter.split_text(text) {
@@ -48,7 +93,8 @@ impl DeepThoughtVecStore {
         };
         chunks
     }
-    pub fn delete_record(&mut self, id: &str) -> Result<(), easy_error::Error> {
+
+    pub fn delete_record(&mut self, id: &str) -> Result<(), Error> {
         let vectors = self.conn.clone();
         let mut conn = match vectors.write() {
             Ok(conn) => conn,
@@ -60,12 +106,139 @@ impl DeepThoughtVecStore {
         }
     }
 
+    // ============================================
+    // NEW METHOD: add_document_with_external_embeddings
+    // Uses external function to generate chunk embeddings
+    // ============================================
+
+    /// Adds a document using an external embedding provider for chunk embeddings.
+    /// This method externalizes the embedding generation logic, allowing different
+    /// embedding providers to be used (DeepThought, OpenAI, custom, etc.)
+    pub fn add_document_with_external_embeddings<E: EmbeddingProvider>(
+        &mut self,
+        id: &str,
+        text: &str,
+        embedder: &E,
+        use_batch: bool, // If true, use batch processing for better performance
+    ) -> Result<Duration, Error> {
+        let timer = Timer::new();
+        let chunks: Vec<String> = self.split_text(text);
+
+        if chunks.is_empty() {
+            bail!("No text chunks generated from the input text");
+        }
+
+        let vectors = self.conn.clone();
+        let mut conn = match vectors.write() {
+            Ok(conn) => conn,
+            Err(err) => bail!("Failed to acquire write lock: {}", err),
+        };
+
+        if use_batch {
+            // Batch processing - more efficient for many chunks
+            self.add_chunks_batch(id, &chunks, embedder, &mut conn)?;
+        } else {
+            // Sequential processing - one chunk at a time
+            self.add_chunks_sequential(id, &chunks, embedder, &mut conn)?;
+        }
+
+        drop(conn);
+        drop(vectors);
+
+        let t = timer.took();
+        let duration = t.as_std();
+        Ok(*duration)
+    }
+
+    // Helper method for sequential chunk addition
+    fn add_chunks_sequential<E: EmbeddingProvider>(
+        &self,
+        id: &str,
+        chunks: &[String],
+        embedder: &E,
+        conn: &mut VecStore,
+    ) -> Result<(), Error> {
+        let mut n = 0;
+        for chunk in chunks.iter() {
+            let chunk_id = format!("{}-{}", id, n);
+
+            // External function call to generate embedding
+            let vector = embedder.generate_embedding(chunk, &self.embedding_prefix)?;
+
+            let mut meta = Metadata {
+                fields: HashMap::new(),
+            };
+            meta.fields
+                .insert("id".into(), serde_json::json!(&chunk_id));
+            meta.fields.insert("n".into(), serde_json::json!(n));
+            meta.fields.insert("text".into(), serde_json::json!(chunk));
+
+            // Use match for error handling instead of context
+            match conn.upsert(chunk_id.clone(), vector, meta) {
+                Ok(_) => {}
+                Err(err) => bail!("Failed to add document chunk {}: {}", n, err),
+            };
+
+            match conn.index_text(&chunk_id, chunk) {
+                Ok(_) => {}
+                Err(err) => bail!("Failed to index document chunk {}: {}", n, err),
+            };
+
+            n += 1;
+        }
+        Ok(())
+    }
+
+    // Helper method for batch chunk addition (more efficient)
+    fn add_chunks_batch<E: EmbeddingProvider>(
+        &self,
+        id: &str,
+        chunks: &[String],
+        embedder: &E,
+        conn: &mut VecStore,
+    ) -> Result<(), Error> {
+        // Generate all embeddings in one batch call
+        let embeddings = embedder.generate_batch_embeddings(chunks, &self.embedding_prefix)?;
+
+        if embeddings.len() != chunks.len() {
+            bail!("Mismatch between number of chunks and embeddings generated");
+        }
+
+        for (n, (chunk, vector)) in chunks.iter().zip(embeddings.iter()).enumerate() {
+            let chunk_id = format!("{}-{}", id, n);
+
+            let mut meta = Metadata {
+                fields: HashMap::new(),
+            };
+            meta.fields
+                .insert("id".into(), serde_json::json!(&chunk_id));
+            meta.fields.insert("n".into(), serde_json::json!(n));
+            meta.fields.insert("text".into(), serde_json::json!(chunk));
+
+            // Use match for error handling
+            match conn.upsert(chunk_id.clone(), vector.clone(), meta) {
+                Ok(_) => {}
+                Err(err) => bail!("Failed to add document chunk {}: {}", n, err),
+            };
+
+            match conn.index_text(&chunk_id, chunk) {
+                Ok(_) => {}
+                Err(err) => bail!("Failed to index document chunk {}: {}", n, err),
+            };
+        }
+        Ok(())
+    }
+
+    // ============================================
+    // Original methods (preserved for backward compatibility)
+    // ============================================
+
     pub fn add_document(
         &mut self,
         id: &str,
         text: &str,
         embedder: &DeepThoughtModel,
-    ) -> Result<Duration, easy_error::Error> {
+    ) -> Result<Duration, Error> {
         let timer = Timer::new();
         let chunks: Vec<String> = self.split_text(text);
         let vectors = self.conn.clone();
@@ -102,12 +275,13 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
+
     pub fn add_string(
         &mut self,
         id: &str,
         text: &str,
         embedder: &DeepThoughtModel,
-    ) -> Result<Duration, easy_error::Error> {
+    ) -> Result<Duration, Error> {
         let timer = Timer::new();
         let vectors = self.conn.clone();
         let mut conn = match vectors.write() {
@@ -138,12 +312,13 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
+
     pub fn add_object(
         &mut self,
         id: &str,
         obj: Value,
         embedder: &DeepThoughtModel,
-    ) -> Result<Duration, easy_error::Error> {
+    ) -> Result<Duration, Error> {
         let timer = Timer::new();
         let vectors = self.conn.clone();
         let mut conn = match vectors.write() {
@@ -186,11 +361,12 @@ impl DeepThoughtVecStore {
         let duration = t.as_std();
         Ok(*duration)
     }
+
     pub fn query_neighbors(
         &self,
         embedding: Vec<f32>,
         query: &str,
-    ) -> Result<Vec<Neighbor>, easy_error::Error> {
+    ) -> Result<Vec<Neighbor>, Error> {
         let conn = self.conn.clone();
         let conn_read = match conn.read() {
             Ok(conn_read) => conn_read,
@@ -221,7 +397,8 @@ impl DeepThoughtVecStore {
         drop(conn);
         Ok(results)
     }
-    pub fn len(&self) -> Result<usize, easy_error::Error> {
+
+    pub fn len(&self) -> Result<usize, Error> {
         let conn = self.conn.clone();
         let conn_read = match conn.read() {
             Ok(conn_read) => conn_read,
@@ -234,11 +411,8 @@ impl DeepThoughtVecStore {
         drop(conn);
         Ok(count)
     }
-    pub fn query(
-        &self,
-        embedding: Vec<f32>,
-        query: &str,
-    ) -> Result<Vec<String>, easy_error::Error> {
+
+    pub fn query(&self, embedding: Vec<f32>, query: &str) -> Result<Vec<String>, Error> {
         let mut res: Vec<String> = Vec::new();
         let neighbors = match self.query_neighbors(embedding, query) {
             Ok(neighbors) => neighbors,
@@ -260,7 +434,8 @@ impl DeepThoughtVecStore {
         }
         Ok(res)
     }
-    pub fn get(&self, id: &str) -> Result<String, easy_error::Error> {
+
+    pub fn get(&self, id: &str) -> Result<String, Error> {
         let conn = self.conn.clone();
         let conn_read = match conn.read() {
             Ok(conn_read) => conn_read,
@@ -278,7 +453,8 @@ impl DeepThoughtVecStore {
             }
         }
     }
-    pub fn save_vectorstore(&self) -> Result<(), easy_error::Error> {
+
+    pub fn save_vectorstore(&self) -> Result<(), Error> {
         let conn = self.conn.clone();
         let mut conn_write = match conn.write() {
             Ok(conn_write) => conn_write,
